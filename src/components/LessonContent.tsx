@@ -1,5 +1,6 @@
 import { Lesson } from '../types';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ReactNode } from 'react';
 
 interface LessonContentProps {
@@ -25,6 +26,7 @@ export function LessonContent({ lesson }: LessonContentProps) {
       {/* Lesson body */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mt-0 rounded-t-none border-t-0">
         <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
           components={{
             h2: ({ children }: { children?: ReactNode }) => (
               <h2 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-4 flex items-center gap-2 first:mt-0">
@@ -86,13 +88,21 @@ export function LessonContent({ lesson }: LessonContentProps) {
             thead: ({ children }: { children?: ReactNode }) => (
               <thead className="bg-gray-50 dark:bg-gray-700/50">{children}</thead>
             ),
+            tbody: ({ children }: { children?: ReactNode }) => (
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">{children}</tbody>
+            ),
+            tr: ({ children }: { children?: ReactNode }) => (
+              <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                {children}
+              </tr>
+            ),
             th: ({ children }: { children?: ReactNode }) => (
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-600 uppercase tracking-wide">
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-600 uppercase tracking-wide whitespace-nowrap">
                 {children}
               </th>
             ),
             td: ({ children }: { children?: ReactNode }) => (
-              <td className="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700/50 font-mono text-xs" dir="ltr">
+              <td className="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700/50 text-xs" dir="ltr">
                 {children}
               </td>
             ),
