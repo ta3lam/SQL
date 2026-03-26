@@ -1,4 +1,5 @@
 import { Lesson } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SidebarProps {
   lessons: Lesson[];
@@ -8,25 +9,26 @@ interface SidebarProps {
 }
 
 const LEVEL_GROUPS = [
-  { label: 'Level 0 — Introduction',    ids: [1, 2, 3] },
-  { label: 'Level 1 — SELECT & Basics', ids: [4, 5, 6, 7] },
-  { label: 'Level 2 — Filtering',       ids: [8, 9, 10, 11] },
-  { label: 'Level 3 — DDL',             ids: [12, 13, 14] },
-  { label: 'Level 4 — DML',             ids: [15, 16, 17] },
-  { label: 'Level 5 — Aggregates',      ids: [18, 19, 20] },
-  { label: 'Level 6 — JOINs',           ids: [21, 22, 23, 24, 25] },
-  { label: 'Level 7 — Functions',       ids: [26, 27, 28, 29] },
-  { label: 'Level 8 — Subqueries',      ids: [30, 31, 32, 33] },
-  { label: 'Level 9 — Advanced',        ids: [34, 35, 36, 37, 38] },
-  { label: 'Level 10 — Expert',         ids: [39, 40, 41, 42] },
+  { ids: [1, 2, 3] },
+  { ids: [4, 5, 6, 7] },
+  { ids: [8, 9, 10, 11] },
+  { ids: [12, 13, 14] },
+  { ids: [15, 16, 17] },
+  { ids: [18, 19, 20] },
+  { ids: [21, 22, 23, 24, 25] },
+  { ids: [26, 27, 28, 29] },
+  { ids: [30, 31, 32, 33] },
+  { ids: [34, 35, 36, 37, 38] },
+  { ids: [39, 40, 41, 42] },
 ];
 
 export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLessons }: SidebarProps) {
+  const { t, isRTL, lang } = useLanguage();
   const completedCount = completedLessons.length;
   const progressPct = Math.round((completedCount / lessons.length) * 100);
 
   return (
-    <aside className="w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto sticky top-0 flex flex-col">
+    <aside className={`w-72 bg-white dark:bg-gray-800 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 h-screen overflow-y-auto sticky top-0 flex flex-col`}>
       {/* Header */}
       <div className="p-5 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3 mb-4">
@@ -36,15 +38,15 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-800 dark:text-white">SQL Mastery</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Zero to Expert</p>
+            <h1 className="text-lg font-bold text-gray-800 dark:text-white">{t.appTitle}</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t.appSubtitle}</p>
           </div>
         </div>
 
         {/* Progress bar */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>{completedCount} / {lessons.length} lessons</span>
+            <span>{t.lessonsProgress(completedCount, lessons.length)}</span>
             <span className="font-medium text-indigo-600 dark:text-indigo-400">{progressPct}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
@@ -58,20 +60,21 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
 
       {/* Lesson List with Level Groups */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        {LEVEL_GROUPS.map((group) => {
+        {LEVEL_GROUPS.map((group, groupIndex) => {
           const groupLessons = lessons.filter(l => group.ids.includes(l.id));
           if (groupLessons.length === 0) return null;
 
           const groupCompleted = groupLessons.filter(l => completedLessons.includes(l.id)).length;
           const allDone = groupCompleted === groupLessons.length;
+          const levelLabel = t.levels[groupIndex];
 
           return (
-            <div key={group.label}>
+            <div key={groupIndex}>
               <div className="flex items-center justify-between px-2 mb-1">
                 <p className={`text-xs font-semibold uppercase tracking-wide ${
                   allDone ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500'
                 }`}>
-                  {group.label}
+                  {levelLabel}
                 </p>
                 <span className="text-xs text-gray-400 dark:text-gray-500">
                   {groupCompleted}/{groupLessons.length}
@@ -82,12 +85,13 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
                 {groupLessons.map((lesson) => {
                   const isCompleted = completedLessons.includes(lesson.id);
                   const isCurrent = currentLesson === lesson.id;
+                  const displayTitle = lang === 'ar' && lesson.titleAr ? lesson.titleAr : lesson.title;
 
                   return (
                     <button
                       key={lesson.id}
                       onClick={() => onSelectLesson(lesson.id)}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-150 flex items-center gap-2.5 ${
+                      className={`w-full text-${isRTL ? 'right' : 'left'} px-3 py-2 rounded-lg transition-all duration-150 flex items-center gap-2.5 ${
                         isCurrent
                           ? 'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700'
                           : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
@@ -119,7 +123,7 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
                             ? 'text-gray-500 dark:text-gray-400'
                             : 'text-gray-700 dark:text-gray-300'
                         }`}>
-                          {lesson.title}
+                          {displayTitle}
                         </p>
                       </div>
                     </button>

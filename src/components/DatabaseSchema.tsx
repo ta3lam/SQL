@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const tables = [
   {
     name: 'departments',
-    description: '6 rows — company departments',
     color: 'blue',
     columns: [
       { name: 'id',         type: 'INTEGER', key: 'PK' },
@@ -15,7 +15,6 @@ const tables = [
   },
   {
     name: 'employees',
-    description: '25 rows — staff with salaries & managers',
     color: 'indigo',
     columns: [
       { name: 'id',            type: 'INTEGER', key: 'PK' },
@@ -31,7 +30,6 @@ const tables = [
   },
   {
     name: 'customers',
-    description: '20 rows — registered customers',
     color: 'emerald',
     columns: [
       { name: 'id',           type: 'INTEGER', key: 'PK' },
@@ -46,7 +44,6 @@ const tables = [
   },
   {
     name: 'categories',
-    description: '5 rows — product categories',
     color: 'amber',
     columns: [
       { name: 'id',          type: 'INTEGER', key: 'PK' },
@@ -56,7 +53,6 @@ const tables = [
   },
   {
     name: 'products',
-    description: '20 rows — items for sale',
     color: 'orange',
     columns: [
       { name: 'id',             type: 'INTEGER', key: 'PK' },
@@ -70,7 +66,6 @@ const tables = [
   },
   {
     name: 'orders',
-    description: '30 rows — customer purchase orders',
     color: 'pink',
     columns: [
       { name: 'id',           type: 'INTEGER', key: 'PK' },
@@ -83,7 +78,6 @@ const tables = [
   },
   {
     name: 'order_items',
-    description: '54 rows — line items per order',
     color: 'purple',
     columns: [
       { name: 'id',         type: 'INTEGER', key: 'PK' },
@@ -106,6 +100,7 @@ const COLOR_MAP: Record<string, string> = {
 };
 
 export function DatabaseSchema() {
+  const { t } = useLanguage();
   const [expandedTable, setExpandedTable] = useState<string | null>('employees');
 
   return (
@@ -119,8 +114,8 @@ export function DatabaseSchema() {
             </svg>
           </div>
           <div>
-            <h3 className="font-semibold text-sm">Database Schema</h3>
-            <p className="text-cyan-100 text-xs">7 tables — click to expand</p>
+            <h3 className="font-semibold text-sm">{t.databaseSchema}</h3>
+            <p className="text-cyan-100 text-xs">{t.tablesCount}</p>
           </div>
         </div>
       </div>
@@ -130,6 +125,7 @@ export function DatabaseSchema() {
         {tables.map((table) => {
           const colorClass = COLOR_MAP[table.color] || COLOR_MAP.blue;
           const isExpanded = expandedTable === table.name;
+          const description = t.tableDescriptions[table.name] || '';
 
           return (
             <div key={table.name} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
@@ -145,7 +141,7 @@ export function DatabaseSchema() {
                   </div>
                   <div className="text-left">
                     <p className="font-mono text-sm font-semibold text-gray-800 dark:text-gray-200">{table.name}</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">{table.description}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{description}</p>
                   </div>
                 </div>
                 <svg
@@ -161,9 +157,9 @@ export function DatabaseSchema() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
-                        <th className="text-left py-1.5 pr-3 font-medium">Column</th>
-                        <th className="text-left py-1.5 pr-3 font-medium">Type</th>
-                        <th className="text-left py-1.5 font-medium">Key</th>
+                        <th className="text-left py-1.5 pr-3 font-medium">{t.columnHeader}</th>
+                        <th className="text-left py-1.5 pr-3 font-medium">{t.typeHeader}</th>
+                        <th className="text-left py-1.5 font-medium">{t.keyHeader}</th>
                       </tr>
                     </thead>
                     <tbody>

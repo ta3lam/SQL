@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Exercise, QueryResult } from '../types';
 import { SQLEditor } from './SQLEditor';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ExercisePanelProps {
   exercises: Exercise[];
@@ -9,6 +10,7 @@ interface ExercisePanelProps {
 }
 
 export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePanelProps) {
+  const { t, isRTL, lang } = useLanguage();
   const [currentExercise, setCurrentExercise] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [exerciseResults, setExerciseResults] = useState<Record<number, boolean>>({});
@@ -44,6 +46,22 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
 
   const completedCount = exercises.filter(ex => exerciseResults[ex.id]).length;
 
+  // Show Arabic text if available
+  const questionText = lang === 'ar' && exercise.questionAr ? exercise.questionAr : exercise.question;
+  const hintText = lang === 'ar' && exercise.hintAr ? exercise.hintAr : exercise.hint;
+
+  // Navigation arrows that flip in RTL
+  const PrevArrow = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
+    </svg>
+  );
+  const NextArrow = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
+    </svg>
+  );
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
       {/* Header */}
@@ -56,8 +74,8 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
               </svg>
             </div>
             <div>
-              <h3 className="font-semibold text-sm">Exercise {currentExercise + 1} of {exercises.length}</h3>
-              <p className="text-amber-100 text-xs">{completedCount}/{exercises.length} completed</p>
+              <h3 className="font-semibold text-sm">{t.exerciseOf(currentExercise + 1, exercises.length)}</h3>
+              <p className="text-amber-100 text-xs">{t.exercisesCompleted(completedCount, exercises.length)}</p>
             </div>
           </div>
           {/* Progress dots */}
@@ -89,25 +107,25 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
               </svg>
             </div>
             <p className="text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
-              {exercise.question}
+              {questionText}
             </p>
           </div>
 
           {/* Hint button */}
           <button
             onClick={() => setShowHint(!showHint)}
-            className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1.5 transition-colors ml-10"
+            className={`text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1.5 transition-colors ${isRTL ? 'mr-10' : 'ml-10'}`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {showHint ? 'Hide hint' : 'Show hint'}
+            {showHint ? t.hideHint : t.showHint}
           </button>
 
           {showHint && (
-            <div className="mt-2 ml-10 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">
-              <p className="text-indigo-700 dark:text-indigo-300 text-xs font-mono">
-                💡 {exercise.hint}
+            <div className={`mt-2 ${isRTL ? 'mr-10' : 'ml-10'} bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3`}>
+              <p className="text-indigo-700 dark:text-indigo-300 text-xs font-mono" dir="ltr">
+                💡 {hintText}
               </p>
             </div>
           )}
@@ -127,7 +145,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm font-medium">Correct! Query executed successfully 🎉</span>
+              <span className="text-sm font-medium">{t.correct}</span>
             </div>
           </div>
         )}
@@ -139,20 +157,16 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
             disabled={currentExercise === 0}
             className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Previous
+            <PrevArrow />
+            {t.previousExercise}
           </button>
           <button
             onClick={goToNext}
             disabled={currentExercise === exercises.length - 1}
             className="px-3 py-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
           >
-            Next exercise
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            {t.nextExercise}
+            <NextArrow />
           </button>
         </div>
       </div>

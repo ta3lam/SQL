@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql } from '@codemirror/lang-sql';
 import { QueryResult } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SQLEditorProps {
   initialValue?: string;
@@ -11,6 +12,7 @@ interface SQLEditorProps {
 }
 
 export function SQLEditor({ initialValue = '', onExecute, onReset, height = '160px' }: SQLEditorProps) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState(initialValue);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -48,10 +50,10 @@ export function SQLEditor({ initialValue = '', onExecute, onReset, height = '160
               <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
               <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
             </div>
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">SQL Editor</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">{t.sqlEditor}</span>
           </div>
           <kbd className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded font-mono">
-            Ctrl+Enter to run
+            {t.ctrlEnterToRun}
           </kbd>
         </div>
         <div onKeyDown={handleKeyDown}>
@@ -80,7 +82,7 @@ export function SQLEditor({ initialValue = '', onExecute, onReset, height = '160
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Running...
+              {t.running}
             </>
           ) : (
             <>
@@ -88,7 +90,7 @@ export function SQLEditor({ initialValue = '', onExecute, onReset, height = '160
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Run Query
+              {t.runQuery}
             </>
           )}
         </button>
@@ -97,12 +99,12 @@ export function SQLEditor({ initialValue = '', onExecute, onReset, height = '160
           <button
             onClick={handleReset}
             className="px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5 text-sm"
-            title="Reset to original example"
+            title={t.resetToOriginal}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Reset
+            {t.reset}
           </button>
         )}
       </div>
@@ -118,6 +120,8 @@ export function SQLEditor({ initialValue = '', onExecute, onReset, height = '160
 }
 
 function ResultTable({ result }: { result: QueryResult }) {
+  const { t } = useLanguage();
+
   if (result.error) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -126,7 +130,7 @@ function ResultTable({ result }: { result: QueryResult }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <span className="font-medium text-sm">SQL Error</span>
+            <span className="font-medium text-sm">{t.sqlError}</span>
             <pre className="mt-1 text-xs font-mono whitespace-pre-wrap" dir="ltr">{result.error}</pre>
           </div>
         </div>
@@ -141,7 +145,7 @@ function ResultTable({ result }: { result: QueryResult }) {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Query executed successfully — no rows returned.
+          {t.noRowsReturned}
         </div>
       </div>
     );
@@ -154,9 +158,9 @@ function ResultTable({ result }: { result: QueryResult }) {
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          {result.values.length} row{result.values.length !== 1 ? 's' : ''} returned
+          {t.rowsReturned(result.values.length)}
         </span>
-        <span className="text-xs text-gray-400">{result.columns.length} columns</span>
+        <span className="text-xs text-gray-400">{t.columnsCount(result.columns.length)}</span>
       </div>
       <div className="overflow-x-auto max-h-72 overflow-y-auto">
         <table className="w-full text-sm" dir="ltr">

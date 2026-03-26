@@ -7,10 +7,12 @@ import { DatabaseSchema } from './components/DatabaseSchema';
 import { Playground } from './components/Playground';
 import { useSQL } from './hooks/useSQL';
 import { lessons } from './data/lessons';
+import { useLanguage } from './contexts/LanguageContext';
 
 type View = 'lesson' | 'playground';
 
 export default function App() {
+  const { t, isRTL, lang, setLang } = useLanguage();
   const [currentLessonId, setCurrentLessonId] = useState(1);
   const [completedLessons, setCompletedLessons] = useState<number[]>([]);
   const [currentView, setCurrentView] = useState<View>('lesson');
@@ -44,15 +46,15 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center" dir="ltr">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
             </svg>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">Loading database engine...</p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Initializing SQLite WASM</p>
+          <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">{t.loadingDb}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">{t.initializingSqlite}</p>
         </div>
       </div>
     );
@@ -60,20 +62,20 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center" dir="ltr">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="text-center bg-red-50 dark:bg-red-900/20 p-8 rounded-2xl max-w-md">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-red-600 dark:text-red-400 text-lg font-medium mb-2">Failed to load database</p>
+          <p className="text-red-600 dark:text-red-400 text-lg font-medium mb-2">{t.failedToLoad}</p>
           <p className="text-red-500 dark:text-red-400 text-sm mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
-            Retry
+            {t.retry}
           </button>
         </div>
       </div>
@@ -82,8 +84,20 @@ export default function App() {
 
   const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
 
+  // Arrow icons that flip in RTL
+  const PrevArrow = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
+    </svg>
+  );
+  const NextArrow = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
+    </svg>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" dir="ltr">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'block' : 'hidden'} lg:block flex-shrink-0`}>
         <Sidebar
@@ -106,7 +120,7 @@ export default function App() {
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title="Toggle Sidebar"
+                title={t.toggleSidebar}
               >
                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -126,7 +140,7 @@ export default function App() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    Lessons
+                    {t.lessons}
                   </span>
                 </button>
                 <button
@@ -141,7 +155,7 @@ export default function App() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
-                    Playground
+                    {t.playground}
                   </span>
                 </button>
               </div>
@@ -150,18 +164,27 @@ export default function App() {
             <div className="flex items-center gap-2">
               {currentView === 'lesson' && (
                 <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
-                  Lesson {currentIndex + 1} of {lessons.length}
+                  {t.lessonOf(currentIndex + 1, lessons.length)}
                 </span>
               )}
               <button
                 onClick={resetDatabase}
                 className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title="Reset all data to defaults"
+                title={t.resetDbTitle}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Reset DB
+                {t.resetDb}
+              </button>
+
+              {/* Language Switcher */}
+              <button
+                onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+                className="px-3 py-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors border border-indigo-200 dark:border-indigo-700"
+                title={t.switchLang}
+              >
+                {t.switchLang}
               </button>
             </div>
           </div>
@@ -183,7 +206,7 @@ export default function App() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Try it out
+                  {t.tryItOut}
                 </h2>
                 <SQLEditor
                   initialValue={currentLesson.example}
@@ -211,10 +234,8 @@ export default function App() {
                   disabled={currentIndex === 0}
                   className="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Previous
+                  <PrevArrow />
+                  {t.previous}
                 </button>
 
                 <div className="flex items-center gap-1">
@@ -238,10 +259,8 @@ export default function App() {
                   disabled={currentIndex === lessons.length - 1}
                   className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
                 >
-                  Next
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  {t.next}
+                  <NextArrow />
                 </button>
               </div>
             </div>

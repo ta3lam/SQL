@@ -3,7 +3,9 @@ export interface Lesson {
   title: string;
   titleAr: string;
   description: string;
+  descriptionAr?: string;
   content: string;
+  contentAr?: string;
   example: string;
   exercises: Exercise[];
 }
@@ -11,7 +13,9 @@ export interface Lesson {
 export interface Exercise {
   id: number;
   question: string;
+  questionAr?: string;
   hint: string;
+  hintAr?: string;
   expectedQuery: string;
   checkFunction: (result: unknown[]) => boolean;
 }

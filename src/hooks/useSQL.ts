@@ -3,8 +3,10 @@ import initSqlJs, { Database } from 'sql.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { initSQL } from '../data/database';
 import { QueryResult } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function useSQL() {
+  const { t } = useLanguage();
   const [db, setDb] = useState<Database | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,12 +22,12 @@ export function useSQL() {
       setDb(newDb);
       setError(null);
     } catch (err) {
-      setError('Failed to initialize database engine.');
+      setError(t.dbInitError);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     initDatabase();
@@ -34,11 +36,10 @@ export function useSQL() {
 
   const executeQuery = useCallback((query: string): QueryResult => {
     if (!dbRef.current) {
-      return { columns: [], values: [], error: 'Database not available.' };
+      return { columns: [], values: [], error: t.dbNotAvailable };
     }
 
     try {
-      // Handle multiple statements separated by semicolons
       const stmts = query.split(';').map(s => s.trim()).filter(Boolean);
       let lastResult: QueryResult = { columns: [], values: [] };
 
@@ -62,7 +63,7 @@ export function useSQL() {
           ) {
             lastResult = {
               columns: ['Result'],
-              values: [[`✅ Query executed successfully. ${changed > 0 ? changed + ' row(s) affected.' : ''}`]],
+              values: [[t.querySuccess(changed)]],
             };
           } else {
             lastResult = { columns: [], values: [] };
@@ -80,10 +81,10 @@ export function useSQL() {
       return {
         columns: [],
         values: [],
-        error: err instanceof Error ? err.message : 'Query execution failed.',
+        error: err instanceof Error ? err.message : t.queryFailed,
       };
     }
-  }, []);
+  }, [t]);
 
   const resetDatabase = useCallback(() => {
     if (dbRef.current) dbRef.current.close();
