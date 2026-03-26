@@ -1,6 +1,7 @@
 import { SQLEditor } from './SQLEditor';
 import { DatabaseSchema } from './DatabaseSchema';
 import { QueryResult } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PlaygroundProps {
   onExecute: (query: string) => QueryResult;
@@ -9,14 +10,12 @@ interface PlaygroundProps {
 
 const SAMPLE_QUERIES = [
   {
-    label: 'All employees with departments',
     query: `SELECT e.name, e.job_title, e.salary, d.name AS department
 FROM employees e
 JOIN departments d ON e.department_id = d.id
 ORDER BY e.salary DESC;`,
   },
   {
-    label: 'Revenue by order status',
     query: `SELECT status,
        COUNT(*) AS orders,
        ROUND(SUM(total_amount), 2) AS total_revenue,
@@ -26,7 +25,6 @@ GROUP BY status
 ORDER BY total_revenue DESC;`,
   },
   {
-    label: 'Top 5 best-selling products',
     query: `SELECT p.name, COUNT(*) AS times_ordered,
        SUM(oi.quantity) AS units_sold
 FROM order_items oi
@@ -36,7 +34,6 @@ ORDER BY units_sold DESC
 LIMIT 5;`,
   },
   {
-    label: 'Customer spending analysis',
     query: `SELECT c.name, c.loyalty_tier,
        COUNT(o.id) AS orders,
        ROUND(SUM(o.total_amount), 2) AS lifetime_value
@@ -46,7 +43,6 @@ GROUP BY c.id, c.name, c.loyalty_tier
 ORDER BY lifetime_value DESC;`,
   },
   {
-    label: 'Employees above dept average salary',
     query: `SELECT e.name, e.salary, e.department_id,
   ROUND((SELECT AVG(salary) FROM employees sub
          WHERE sub.department_id = e.department_id), 0) AS dept_avg
@@ -58,7 +54,6 @@ WHERE e.salary > (
 ORDER BY e.department_id, e.salary DESC;`,
   },
   {
-    label: 'Org chart (employee → manager)',
     query: `SELECT e.name AS employee, e.job_title,
        COALESCE(m.name, 'Top Level') AS manager
 FROM employees e
@@ -68,8 +63,10 @@ ORDER BY manager, employee;`,
 ];
 
 export function Playground({ onExecute, onReset }: PlaygroundProps) {
+  const { t } = useLanguage();
+
   return (
-    <div className="space-y-6" dir="ltr">
+    <div className="space-y-6">
       {/* Hero */}
       <div className="bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl p-5 shadow-lg">
         <div className="flex items-center gap-3">
@@ -79,8 +76,8 @@ export function Playground({ onExecute, onReset }: PlaygroundProps) {
             </svg>
           </div>
           <div>
-            <h1 className="text-xl font-bold">SQL Playground</h1>
-            <p className="text-violet-200 text-sm">Run any query against the training database</p>
+            <h1 className="text-xl font-bold">{t.sqlPlayground}</h1>
+            <p className="text-violet-200 text-sm">{t.playgroundSubtitle}</p>
           </div>
         </div>
       </div>
@@ -93,15 +90,10 @@ export function Playground({ onExecute, onReset }: PlaygroundProps) {
               <svg className="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Query Editor
+              {t.queryEditor}
             </h2>
             <SQLEditor
-              initialValue={`-- Welcome to the SQL Playground!
--- Try any query you want against the training database.
--- The database has 7 tables: departments, employees,
--- customers, categories, products, orders, order_items
-
-SELECT * FROM employees ORDER BY salary DESC LIMIT 10;`}
+              initialValue={t.playgroundInitialQuery}
               onExecute={onExecute}
               onReset={onReset}
               height="220px"
@@ -114,25 +106,21 @@ SELECT * FROM employees ORDER BY salary DESC LIMIT 10;`}
               <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Sample Queries — click to copy into editor
+              {t.sampleQueries}
             </h2>
             <div className="grid gap-2">
               {SAMPLE_QUERIES.map((item, idx) => (
                 <button
                   key={idx}
-                  onClick={() => {
-                    // Copy to clipboard and show in editor by updating a shared state
-                    // For now, just show the query in a tooltip-like fashion
-                    onExecute(item.query);
-                  }}
+                  onClick={() => onExecute(item.query)}
                   className="text-left w-full p-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-700"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
-                        {item.label}
+                        {t.sampleQueryLabels[idx] ?? item.query.split('\n')[0].trim()}
                       </p>
-                      <code className="text-xs text-gray-400 dark:text-gray-500 font-mono line-clamp-1 mt-0.5">
+                      <code className="text-xs text-gray-400 dark:text-gray-500 font-mono line-clamp-1 mt-0.5" dir="ltr">
                         {item.query.split('\n')[0].trim()}...
                       </code>
                     </div>
