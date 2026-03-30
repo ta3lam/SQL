@@ -124,7 +124,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
 
           {showHint && (
             <div className={`mt-2 ${isRTL ? 'mr-10' : 'ml-10'} bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3`}>
-              <p className="text-indigo-700 dark:text-indigo-300 text-xs font-mono" dir="ltr">
+              <p className="text-indigo-700 dark:text-indigo-300 text-xs font-mono" dir="auto">
                 💡 {hintText}
               </p>
             </div>

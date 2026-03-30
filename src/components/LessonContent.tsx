@@ -2,20 +2,27 @@ import { Lesson } from '../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ReactNode } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface LessonContentProps {
   lesson: Lesson;
 }
 
 export function LessonContent({ lesson }: LessonContentProps) {
+  const { lang, isRTL } = useLanguage();
+  const displayTitle = lang === 'ar' && lesson.titleAr ? lesson.titleAr : lesson.title;
+  const displayDescription = lang === 'ar' && lesson.descriptionAr ? lesson.descriptionAr : lesson.description;
+  const displayContent = lang === 'ar' && lesson.contentAr ? lesson.contentAr : lesson.content;
+  const contentDir = lang === 'ar' && lesson.contentAr ? 'rtl' : 'ltr';
+
   return (
-    <div className="prose prose-base dark:prose-invert max-w-none" dir="ltr">
+    <div className="prose prose-base dark:prose-invert max-w-none" dir={contentDir}>
       {/* Lesson header */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl p-6 mb-0 shadow-md">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">{lesson.title}</h1>
-            <p className="text-indigo-100 text-sm leading-relaxed">{lesson.description}</p>
+            <h1 className="text-2xl font-bold text-white mb-1">{displayTitle}</h1>
+            <p className="text-indigo-100 text-sm leading-relaxed">{displayDescription}</p>
           </div>
           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-bold">
             #{lesson.id}
@@ -66,12 +73,12 @@ export function LessonContent({ lesson }: LessonContentProps) {
             },
             pre: ({ children }: { children?: ReactNode }) => <>{children}</>,
             ul: ({ children }: { children?: ReactNode }) => (
-              <ul className="list-disc list-outside ml-5 space-y-1.5 text-gray-600 dark:text-gray-300 mb-3">
+              <ul className="list-disc list-outside ms-5 space-y-1.5 text-gray-600 dark:text-gray-300 mb-3">
                 {children}
               </ul>
             ),
             ol: ({ children }: { children?: ReactNode }) => (
-              <ol className="list-decimal list-outside ml-5 space-y-1.5 text-gray-600 dark:text-gray-300 mb-3">
+              <ol className="list-decimal list-outside ms-5 space-y-1.5 text-gray-600 dark:text-gray-300 mb-3">
                 {children}
               </ol>
             ),
@@ -110,14 +117,14 @@ export function LessonContent({ lesson }: LessonContentProps) {
               <strong className="font-semibold text-gray-800 dark:text-gray-100">{children}</strong>
             ),
             blockquote: ({ children }: { children?: ReactNode }) => (
-              <blockquote className="border-l-4 border-indigo-400 pl-4 my-3 bg-indigo-50 dark:bg-indigo-900/20 py-2 pr-3 rounded-r-lg text-sm text-indigo-800 dark:text-indigo-200">
+              <blockquote className="border-s-4 border-indigo-400 ps-4 my-3 bg-indigo-50 dark:bg-indigo-900/20 py-2 pe-3 rounded-e-lg text-sm text-indigo-800 dark:text-indigo-200">
                 {children}
               </blockquote>
             ),
             hr: () => <hr className="border-gray-200 dark:border-gray-700 my-6" />,
           }}
         >
-          {lesson.content}
+          {displayContent}
         </ReactMarkdown>
       </div>
     </div>

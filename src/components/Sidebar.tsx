@@ -116,7 +116,7 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
 
                       {/* Lesson title */}
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm truncate ${
+                        <p dir="auto" className={`text-sm truncate ${
                           isCurrent
                             ? 'font-semibold text-indigo-700 dark:text-indigo-300'
                             : isCompleted
