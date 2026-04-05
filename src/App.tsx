@@ -99,7 +99,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'block' : 'hidden'} lg:block flex-shrink-0`}>
+      <div className={`${sidebarOpen ? 'block' : 'hidden'} flex-shrink-0`}>
         <Sidebar
           lessons={lessons}
           currentLesson={currentLessonId}
