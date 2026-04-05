@@ -1,33 +1,81 @@
 # 🗄️ SQL Mastery — Interactive Learning Platform
 
-> Learn SQL from zero to expert — interactive lessons, exercises, and a full in-browser training database.
+> تعلّم SQL من الصفر إلى الاحتراف — دروس تفاعلية، تمارين عملية، وقاعدتا بيانات حقيقيتان داخل المتصفح مباشرة.
+>
+> Learn SQL from zero to expert — interactive lessons, hands-on exercises, and two real databases running entirely in your browser.
 
-[![Deploy SQL Mastery to GitHub Pages](https://github.com/ta3lam/SQL/actions/workflows/deploy.yml/badge.svg)](https://github.com/ta3lam/SQL/actions)
+[![Deploy to GitHub Pages](https://github.com/ta3lam/SQL/actions/workflows/deploy.yml/badge.svg)](https://github.com/ta3lam/SQL/actions)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?logo=tailwindcss&logoColor=white)
+![sql.js](https://img.shields.io/badge/sql.js-SQLite%20WASM-003B57?logo=sqlite&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+**🌐 Live Demo → [https://ta3lam.github.io/SQL](https://ta3lam.github.io/SQL)**
 
 ---
 
-## 📖 Overview
+## 📸 Preview
 
-**SQL Mastery** is a fully browser-based, interactive SQL learning platform. It requires no backend, no database server, and no installation — everything runs locally in the browser thanks to [sql.js](https://sql.js.org), a WebAssembly port of SQLite.
-
-Users progress through structured lessons, write real SQL queries in an embedded code editor, and instantly see results against a preloaded training database — all without leaving the page.
+| Lessons (English) | Playground — DVD Rental |
+|---|---|
+| Structured curriculum with live SQL exercises | Full PostgreSQL dataset running in-browser |
 
 ---
 
 ## ✨ Features
 
-- 📚 **Structured curriculum** — Lessons organized from beginner to advanced SQL concepts
-- ⌨️ **In-browser SQL editor** — Powered by CodeMirror with full SQL syntax highlighting and autocompletion
-- ⚡ **Live query execution** — Runs real SQLite queries in the browser via WebAssembly (no server needed)
-- 🗃️ **Preloaded training database** — Practice with realistic data right out of the box
-- 📝 **Markdown-rendered lessons** — Rich lesson content with code blocks and formatted explanations
-- 📦 **Single-file build** — The entire app bundles into one self-contained HTML file for easy distribution
-- 🚀 **Auto-deployed** — Continuously deployed to GitHub Pages on every push to `main`
+### 🎓 Learning
+- **42 structured lessons** — from `SELECT` basics to Window Functions, CTEs, and query optimization
+- **10 levels of difficulty** — Introduction → Subqueries → Advanced topics
+- **Progress tracking** — per-lesson completion saved to `localStorage`
+- **Rich lesson content** — Markdown-rendered with syntax-highlighted code blocks and real examples
+
+### 💻 SQL Playground
+- **Two real databases** to explore and query:
+  - 🏢 **Company Database** — employees, departments, orders, products, customers
+  - 🎬 **DVD Rental** — real PostgreSQL Sakila dataset, **44,820 rows** across 15 tables
+    - `inventory` 4,581 rows · `rental` 16,044 rows · `payment` 14,596 rows · `film` 1,000 rows · and more
+- **Interactive schema viewer** — expandable table explorer with column types and FK relationships
+- **Sample queries** — 6 ready-to-run queries per database (click to load & auto-execute)
+- **SQL editor** — CodeMirror 6 with syntax highlighting, autocompletion, and `Ctrl+Enter` shortcut
+
+### 🌍 Bilingual — Arabic & English
+- Full **Arabic (RTL)** and **English (LTR)** support — switch at any time
+- All 42 lesson titles, UI labels, and table descriptions translated
+- Proper RTL layout: sidebar, schema panel, query buttons, lesson navigation
+
+### ⚡ Technical
+- **Zero backend** — everything runs in the browser via [sql.js](https://sql.js.org) (SQLite over WebAssembly)
+- **Collapsible sidebar** — toggle with the ☰ button to maximize editor space
+- **Single-file build** — the entire app bundles into one self-contained `index.html`
+- **Auto-deployed** — GitHub Actions → GitHub Pages on every push to `main`
+
+---
+
+## 🗄️ DVD Rental Database
+
+The playground includes the full **PostgreSQL Sakila** sample database, converted to SQLite:
+
+| Table | Rows | Description |
+|---|---|---|
+| `film` | 1,000 | Films with ratings, rental rates & descriptions |
+| `actor` | 200 | Actors |
+| `film_actor` | 5,462 | Actor ↔ Film mapping |
+| `film_category` | 1,000 | Film ↔ Genre mapping |
+| `category` | 16 | Film genres |
+| `language` | 6 | Spoken languages |
+| `customer` | 599 | Registered customers |
+| `inventory` | 4,581 | Physical film copies |
+| `rental` | 16,044 | Rental transactions |
+| `payment` | 14,596 | Payments |
+| `address` | 603 | Addresses |
+| `city` | 600 | Cities |
+| `country` | 109 | Countries |
+| `store` | 2 | Stores |
+| `staff` | 2 | Staff members |
+| **Total** | **44,820** | |
 
 ---
 
@@ -39,7 +87,7 @@ Users progress through structured lessons, write real SQL queries in an embedded
 | Language | TypeScript 5.9 |
 | Build Tool | Vite 7 |
 | Styling | Tailwind CSS 4 |
-| SQL Engine | sql.js (SQLite via WebAssembly) |
+| SQL Engine | sql.js 1.14 (SQLite via WebAssembly) |
 | Code Editor | CodeMirror 6 + `@codemirror/lang-sql` |
 | Markdown | react-markdown + remark-gfm |
 | Deployment | GitHub Actions → GitHub Pages |
@@ -51,7 +99,7 @@ Users progress through structured lessons, write real SQL queries in an embedded
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v20 or higher
+- [Node.js](https://nodejs.org/) v20+
 - npm
 
 ### Installation
@@ -68,7 +116,7 @@ npm install
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`.
+Open `http://localhost:5173` in your browser.
 
 ### Build for Production
 
@@ -76,13 +124,7 @@ The app will be available at `http://localhost:5173`.
 npm run build
 ```
 
-The output will be a single self-contained `index.html` file in the `dist/` directory, which can be hosted on any static file server.
-
-### Preview Production Build
-
-```bash
-npm run preview
-```
+Output: a single self-contained `dist/index.html` — host it anywhere (GitHub Pages, Netlify, S3, etc.).
 
 ---
 
@@ -92,49 +134,64 @@ npm run preview
 SQL/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml        # GitHub Actions CI/CD pipeline
-├── src/                      # Application source code
-│   └── main.tsx              # React entry point
-├── index.html                # HTML shell
-├── vite.config.ts            # Vite configuration
-├── tsconfig.json             # TypeScript configuration
-├── tailwind.config           # Tailwind CSS configuration
-└── package.json              # Dependencies and scripts
+│       └── deploy.yml              # GitHub Actions CI/CD
+├── src/
+│   ├── components/
+│   │   ├── Sidebar.tsx             # Lesson navigation panel
+│   │   ├── LessonContent.tsx       # Markdown lesson renderer
+│   │   ├── ExercisePanel.tsx       # SQL exercise + validation
+│   │   ├── SQLEditor.tsx           # CodeMirror editor + results table
+│   │   ├── Playground.tsx          # Free-play SQL sandbox
+│   │   ├── DatabaseSchema.tsx      # Company DB schema viewer
+│   │   └── DVDRentalSchema.tsx     # DVD Rental schema viewer
+│   ├── contexts/
+│   │   └── LanguageContext.tsx     # Arabic / English context
+│   ├── data/
+│   │   ├── database.ts             # Company training database (SQL)
+│   │   ├── dvdRental.sql           # Full DVD Rental dataset (44,820 rows)
+│   │   ├── dvdRental.ts            # Re-exports dvdRental.sql via ?raw
+│   │   └── lessons_part*.ts        # Lesson content (42 lessons, 4 files)
+│   ├── hooks/
+│   │   ├── useSQL.ts               # sql.js hook for lesson exercises
+│   │   └── usePlaygroundSQL.ts     # sql.js hook for Playground databases
+│   ├── i18n/
+│   │   └── translations.ts         # EN + AR translations
+│   ├── App.tsx                     # Root layout + routing
+│   └── main.tsx                    # React entry point
+├── index.html
+├── vite.config.ts
+└── package.json
 ```
 
 ---
 
 ## 🔄 CI/CD & Deployment
 
-The project uses **GitHub Actions** to automatically build and deploy to **GitHub Pages** on every push to the `main` branch.
+Every push to `main` triggers the GitHub Actions workflow:
 
-The workflow (`deploy.yml`) does the following:
+1. Checkout code
+2. Setup Node.js 20
+3. `npm ci`
+4. `npm run build` → single `index.html`
+5. Deploy to GitHub Pages
 
-1. Checks out the code
-2. Sets up Node.js 20
-3. Installs dependencies with `npm ci`
-4. Builds the project with `npm run build`
-5. Deploys the `dist/` folder to GitHub Pages
-
-**Live Demo:** [https://ta3lam.github.io/SQL](https://ta3lam.github.io/SQL)
+**Live:** [https://ta3lam.github.io/SQL](https://ta3lam.github.io/SQL)
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! To get started:
-
 1. Fork the repository
-2. Create a new branch: `git checkout -b feature/your-feature-name`
-3. Make your changes and commit: `git commit -m 'Add some feature'`
-4. Push to your fork: `git push origin feature/your-feature-name`
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'Add some feature'`
+4. Push: `git push origin feature/your-feature`
 5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT — see [LICENSE](LICENSE) for details.
 
 ---
 
