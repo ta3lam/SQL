@@ -54,6 +54,12 @@ export interface Translations {
   sampleQueries: string;
   playgroundInitialQuery: string;
   sampleQueryLabels: string[];
+  companyDb: string;
+  dvdRentalDb: string;
+  dvdRentalInitialQuery: string;
+  dvdRentalSampleQueryLabels: string[];
+  dvdRentalTablesCount: string;
+  dvdTableDescriptions: Record<string, string>;
   // useSQL messages
   dbInitError: string;
   dbNotAvailable: string;
@@ -145,6 +151,35 @@ export const translations: Record<Lang, Translations> = {
       'Employees above dept average salary',
       'Org chart (employee → manager)',
     ],
+    companyDb: 'Company Database',
+    dvdRentalDb: 'DVD Rental',
+    dvdRentalInitialQuery: `-- Welcome to the DVD Rental Playground!\n-- This database models a video rental store.\n-- 15 tables: film, actor, customer, rental, payment, ...\n\nSELECT f.title, f.rating, f.rental_rate, c.name AS category\nFROM film f\nJOIN film_category fc ON f.film_id = fc.film_id\nJOIN category c ON fc.category_id = c.category_id\nORDER BY f.rental_rate DESC\nLIMIT 10;`,
+    dvdRentalSampleQueryLabels: [
+      'Top 10 most-rented films',
+      'Revenue by category',
+      'Top 10 customers by spending',
+      'Films with full cast list',
+      'Film count & avg rate by category',
+      'Staff payment performance',
+    ],
+    dvdRentalTablesCount: '15 tables — click to expand',
+    dvdTableDescriptions: {
+      country:       '10 rows — countries',
+      city:          '15 rows — cities with country link',
+      address:       '15 rows — store & customer addresses',
+      language:      '6 rows — spoken languages',
+      category:      '16 rows — film genres',
+      actor:         '20 rows — actors',
+      film:          '20 rows — films with ratings & rates',
+      film_actor:    'junction — actors per film',
+      film_category: 'junction — genres per film',
+      store:         '2 rows — rental store locations',
+      staff:         '4 rows — store employees',
+      customer:      '20 rows — registered customers',
+      inventory:     '40 rows — physical film copies',
+      rental:        '30 rows — rental transactions',
+      payment:       '30 rows — payments',
+    },
     // useSQL messages
     dbInitError: 'Failed to initialize database engine.',
     dbNotAvailable: 'Database not available.',
@@ -235,6 +270,35 @@ export const translations: Record<Lang, Translations> = {
       'الموظفون فوق متوسط راتب القسم',
       'المخطط التنظيمي (موظف ← مدير)',
     ],
+    companyDb: 'قاعدة بيانات الشركة',
+    dvdRentalDb: 'إيجار أفلام DVD',
+    dvdRentalInitialQuery: `-- مرحباً بك في ملعب قاعدة بيانات DVD!\n-- تحاكي هذه القاعدة متجر تأجير أفلام فيديو.\n-- 15 جدولاً: film, actor, customer, rental, payment, ...\n\nSELECT f.title, f.rating, f.rental_rate, c.name AS category\nFROM film f\nJOIN film_category fc ON f.film_id = fc.film_id\nJOIN category c ON fc.category_id = c.category_id\nORDER BY f.rental_rate DESC\nLIMIT 10;`,
+    dvdRentalSampleQueryLabels: [
+      'أكثر 10 أفلام استئجاراً',
+      'الإيرادات حسب الفئة',
+      'أفضل 10 عملاء إنفاقاً',
+      'الأفلام مع قائمة الممثلين',
+      'عدد الأفلام ومتوسط السعر حسب الفئة',
+      'أداء الموظفين في الدفعات',
+    ],
+    dvdRentalTablesCount: '15 جدولاً — انقر للتوسيع',
+    dvdTableDescriptions: {
+      country:       '10 صفوف — الدول',
+      city:          '15 صفاً — المدن مع رابط الدولة',
+      address:       '15 صفاً — عناوين المتاجر والعملاء',
+      language:      '6 صفوف — اللغات المنطوقة',
+      category:      '16 صفاً — أجناس الأفلام',
+      actor:         '20 صفاً — الممثلون',
+      film:          '20 صفاً — الأفلام مع التقييمات والأسعار',
+      film_actor:    'جدول ربط — ممثلو كل فيلم',
+      film_category: 'جدول ربط — أجناس كل فيلم',
+      store:         'صفان — مواقع متاجر الإيجار',
+      staff:         '4 صفوف — موظفو المتاجر',
+      customer:      '20 صفاً — العملاء المسجلون',
+      inventory:     '40 صفاً — النسخ المادية للأفلام',
+      rental:        '30 صفاً — معاملات الإيجار',
+      payment:       '30 صفاً — المدفوعات',
+    },
     // useSQL messages
     dbInitError: 'فشل تهيئة محرك قاعدة البيانات.',
     dbNotAvailable: 'قاعدة البيانات غير متاحة.',
