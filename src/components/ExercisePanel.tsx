@@ -23,7 +23,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
     setWrongAnswer(false);
 
     if (!result.error) {
-      const passed = exercise.checkFunction(result.values ?? []);
+      const passed = exercise.checkFunction(result.values ?? [], query);
       if (passed) {
         setExerciseResults(prev => {
           const next = { ...prev, [exercise.id]: true };
