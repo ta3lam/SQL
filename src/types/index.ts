@@ -17,7 +17,7 @@ export interface Exercise {
   hint: string;
   hintAr?: string;
   expectedQuery: string;
-  checkFunction: (result: unknown[]) => boolean;
+  checkFunction: (result: unknown[], query?: string) => boolean;
 }
 
 export interface QueryResult {
