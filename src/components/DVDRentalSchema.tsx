@@ -16,6 +16,9 @@ const tables = [
       { name: 'length',           type: 'INTEGER', key: '' },
       { name: 'replacement_cost', type: 'REAL',    key: '' },
       { name: 'rating',           type: 'TEXT',    key: '' },
+      { name: 'last_update',      type: 'TEXT',    key: '' },
+      { name: 'special_features', type: 'TEXT',    key: '' },
+      { name: 'fulltext',         type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -25,14 +28,16 @@ const tables = [
       { name: 'actor_id',   type: 'INTEGER', key: 'PK' },
       { name: 'first_name', type: 'TEXT',    key: '' },
       { name: 'last_name',  type: 'TEXT',    key: '' },
+      { name: 'last_update',type: 'TEXT',    key: '' },
     ],
   },
   {
     name: 'film_actor',
     color: 'fuchsia',
     columns: [
-      { name: 'actor_id', type: 'INTEGER', key: 'FK→actor' },
-      { name: 'film_id',  type: 'INTEGER', key: 'FK→film' },
+      { name: 'actor_id',   type: 'INTEGER', key: 'FK→actor' },
+      { name: 'film_id',    type: 'INTEGER', key: 'FK→film' },
+      { name: 'last_update',type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -41,6 +46,7 @@ const tables = [
     columns: [
       { name: 'category_id', type: 'INTEGER', key: 'PK' },
       { name: 'name',        type: 'TEXT',    key: '' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -49,6 +55,7 @@ const tables = [
     columns: [
       { name: 'film_id',     type: 'INTEGER', key: 'FK→film' },
       { name: 'category_id', type: 'INTEGER', key: 'FK→category' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -57,6 +64,7 @@ const tables = [
     columns: [
       { name: 'language_id', type: 'INTEGER', key: 'PK' },
       { name: 'name',        type: 'TEXT',    key: '' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -69,6 +77,9 @@ const tables = [
       { name: 'last_name',   type: 'TEXT',    key: '' },
       { name: 'email',       type: 'TEXT',    key: '' },
       { name: 'address_id',  type: 'INTEGER', key: 'FK→address' },
+      { name: 'activebool',  type: 'INTEGER', key: '' },
+      { name: 'create_date', type: 'TEXT',    key: '' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
       { name: 'active',      type: 'INTEGER', key: '' },
     ],
   },
@@ -82,6 +93,7 @@ const tables = [
       { name: 'customer_id',  type: 'INTEGER', key: 'FK→customer' },
       { name: 'return_date',  type: 'TEXT',    key: '' },
       { name: 'staff_id',     type: 'INTEGER', key: 'FK→staff' },
+      { name: 'last_update',  type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -103,6 +115,7 @@ const tables = [
       { name: 'inventory_id', type: 'INTEGER', key: 'PK' },
       { name: 'film_id',      type: 'INTEGER', key: 'FK→film' },
       { name: 'store_id',     type: 'INTEGER', key: 'FK→store' },
+      { name: 'last_update',  type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -112,19 +125,24 @@ const tables = [
       { name: 'store_id',         type: 'INTEGER', key: 'PK' },
       { name: 'manager_staff_id', type: 'INTEGER', key: 'FK→staff' },
       { name: 'address_id',       type: 'INTEGER', key: 'FK→address' },
+      { name: 'last_update',      type: 'TEXT',    key: '' },
     ],
   },
   {
     name: 'staff',
     color: 'rose',
     columns: [
-      { name: 'staff_id',   type: 'INTEGER', key: 'PK' },
-      { name: 'first_name', type: 'TEXT',    key: '' },
-      { name: 'last_name',  type: 'TEXT',    key: '' },
-      { name: 'address_id', type: 'INTEGER', key: 'FK→address' },
-      { name: 'email',      type: 'TEXT',    key: '' },
-      { name: 'store_id',   type: 'INTEGER', key: 'FK→store' },
-      { name: 'username',   type: 'TEXT',    key: '' },
+      { name: 'staff_id',    type: 'INTEGER', key: 'PK' },
+      { name: 'first_name',  type: 'TEXT',    key: '' },
+      { name: 'last_name',   type: 'TEXT',    key: '' },
+      { name: 'address_id',  type: 'INTEGER', key: 'FK→address' },
+      { name: 'email',       type: 'TEXT',    key: '' },
+      { name: 'store_id',    type: 'INTEGER', key: 'FK→store' },
+      { name: 'active',      type: 'INTEGER', key: '' },
+      { name: 'username',    type: 'TEXT',    key: '' },
+      { name: 'password',    type: 'TEXT',    key: '' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
+      { name: 'picture',     type: 'TEXT',    key: '' },
     ],
   },
   {
@@ -133,27 +151,31 @@ const tables = [
     columns: [
       { name: 'address_id',  type: 'INTEGER', key: 'PK' },
       { name: 'address',     type: 'TEXT',    key: '' },
+      { name: 'address2',    type: 'TEXT',    key: '' },
       { name: 'district',    type: 'TEXT',    key: '' },
       { name: 'city_id',     type: 'INTEGER', key: 'FK→city' },
       { name: 'postal_code', type: 'TEXT',    key: '' },
       { name: 'phone',       type: 'TEXT',    key: '' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
     ],
   },
   {
     name: 'city',
     color: 'sky',
     columns: [
-      { name: 'city_id',    type: 'INTEGER', key: 'PK' },
-      { name: 'city',       type: 'TEXT',    key: '' },
-      { name: 'country_id', type: 'INTEGER', key: 'FK→country' },
+      { name: 'city_id',     type: 'INTEGER', key: 'PK' },
+      { name: 'city',        type: 'TEXT',    key: '' },
+      { name: 'country_id',  type: 'INTEGER', key: 'FK→country' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
     ],
   },
   {
     name: 'country',
     color: 'green',
     columns: [
-      { name: 'country_id', type: 'INTEGER', key: 'PK' },
-      { name: 'country',    type: 'TEXT',    key: '' },
+      { name: 'country_id',  type: 'INTEGER', key: 'PK' },
+      { name: 'country',     type: 'TEXT',    key: '' },
+      { name: 'last_update', type: 'TEXT',    key: '' },
     ],
   },
 ];
