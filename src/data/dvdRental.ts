@@ -162,12 +162,12 @@ CREATE TABLE payment (
 --  DATA
 -- ──────────────────────────────────────────
 
-INSERT INTO country VALUES
+INSERT INTO country (country_id, country) VALUES
   (1,'United States'),(2,'United Kingdom'),(3,'France'),
   (4,'Germany'),(5,'Japan'),(6,'Australia'),
   (7,'Canada'),(8,'Brazil'),(9,'Italy'),(10,'Spain');
 
-INSERT INTO city VALUES
+INSERT INTO city (city_id, city, country_id) VALUES
   (1,'Los Angeles',1),(2,'New York',1),(3,'Chicago',1),
   (4,'London',2),(5,'Manchester',2),(6,'Paris',3),(7,'Lyon',3),
   (8,'Berlin',4),(9,'Munich',4),(10,'Tokyo',5),(11,'Osaka',5),
@@ -190,17 +190,17 @@ INSERT INTO address (address_id, address, district, city_id, postal_code, phone)
   (14,'76 Tete Way',          'Ohio',       2,  '57328', '570762402'),
   (15,'346 Skikda Parkway',   'Ontario',    13, '37636', '015453512');
 
-INSERT INTO language VALUES
+INSERT INTO language (language_id, name) VALUES
   (1,'English'),(2,'Italian'),(3,'Japanese'),
   (4,'Mandarin'),(5,'French'),(6,'German');
 
-INSERT INTO category VALUES
+INSERT INTO category (category_id, name) VALUES
   (1,'Action'),(2,'Animation'),(3,'Children'),(4,'Classics'),
   (5,'Comedy'),(6,'Documentary'),(7,'Drama'),(8,'Family'),
   (9,'Foreign'),(10,'Games'),(11,'Horror'),(12,'Music'),
   (13,'New'),(14,'Sci-Fi'),(15,'Sports'),(16,'Travel');
 
-INSERT INTO actor VALUES
+INSERT INTO actor (actor_id, first_name, last_name) VALUES
   (1, 'PENELOPE','GUINESS'),  (2, 'NICK',     'WAHLBERG'),
   (3, 'ED',      'CHASE'),    (4, 'JENNIFER', 'DAVIS'),
   (5, 'JOHNNY',  'LOLLOBRIGIDA'),(6,'BETTE',  'NICHOLSON'),
@@ -212,7 +212,7 @@ INSERT INTO actor VALUES
   (17,'HELEN',   'VOIGHT'),   (18,'DAN',     'TORN'),
   (19,'BOB',     'FAWCETT'),  (20,'LUCILLE', 'TRACY');
 
-INSERT INTO film VALUES
+INSERT INTO film (film_id, title, description, release_year, language_id, rental_duration, rental_rate, length, replacement_cost, rating) VALUES
   (1, 'ACADEMY DINOSAUR',   'A Epic Drama of a Feminist and a Mad Scientist',              2006,1,6,0.99, 86, 20.99,'PG'),
   (2, 'ACE GOLDFINGER',     'A Astounding Epistle of a Database Administrator and a Explorer',2006,1,3,4.99,48, 12.99,'G'),
   (3, 'ADAPTATION HOLES',   'A Astounding Reflection of a Lumberjack and a Car',           2006,1,7,2.99, 50, 18.99,'NC-17'),
@@ -234,21 +234,21 @@ INSERT INTO film VALUES
   (19,'AMADEUS HOLY',       'A Emotional Display of a Pioneer and a Technical Writer',     2006,1,6,0.99, 113,20.99,'PG'),
   (20,'AMELIE HELLFIGHTERS','A Boring Drama of a Woman and a Squirrel who must Conquer',   2006,1,4,4.99, 79, 23.99,'R');
 
-INSERT INTO film_actor VALUES
+INSERT INTO film_actor (actor_id, film_id) VALUES
   (1,1),(1,6),(2,3),(2,9),(3,5),(3,11),(4,2),(4,14),
   (5,6),(5,16),(6,8),(6,20),(7,4),(7,17),(8,9),(8,12),
   (9,10),(9,15),(10,7),(10,18),(11,1),(11,13),(12,3),(12,19),
   (13,6),(13,20),(14,2),(14,8),(15,5),(15,17),(16,9),(16,14),
   (17,4),(17,11),(18,7),(18,16),(19,10),(19,18),(20,1),(20,13);
 
-INSERT INTO film_category VALUES
+INSERT INTO film_category (film_id, category_id) VALUES
   (1,6),(2,11),(3,6),(4,11),(5,8),(6,9),(7,5),(8,11),
   (9,11),(10,7),(11,6),(12,14),(13,7),(14,2),(15,9),
   (16,4),(17,4),(18,14),(19,3),(20,9);
 
 INSERT INTO store (store_id, address_id) VALUES (1,1),(2,2);
 
-INSERT INTO staff VALUES
+INSERT INTO staff (staff_id, first_name, last_name, address_id, email, store_id, active, username) VALUES
   (1,'Mike', 'Hillyer',  3,'Mike.Hillyer@sakilastaff.com',  1,1,'Mike'),
   (2,'Jon',  'Stephens', 4,'Jon.Stephens@sakilastaff.com',  2,1,'Jon'),
   (3,'Linda','Williams', 5,'Linda.Williams@sakilastaff.com',1,1,'Linda'),
@@ -257,7 +257,7 @@ INSERT INTO staff VALUES
 UPDATE store SET manager_staff_id = 1 WHERE store_id = 1;
 UPDATE store SET manager_staff_id = 2 WHERE store_id = 2;
 
-INSERT INTO customer VALUES
+INSERT INTO customer (customer_id, store_id, first_name, last_name, email, address_id, activebool, create_date) VALUES
   (1, 1,'MARY',     'SMITH',    'MARY.SMITH@sakilacustomer.org',    7, 1,'2006-02-14'),
   (2, 1,'PATRICIA', 'JOHNSON',  'PATRICIA.JOHNSON@sakilacustomer.org',8,1,'2006-02-14'),
   (3, 1,'LINDA',    'WILLIAMS', 'LINDA.WILLIAMS@sakilacustomer.org', 9, 1,'2006-02-14'),
@@ -279,7 +279,7 @@ INSERT INTO customer VALUES
   (19,1,'RUTH',     'MARTINEZ', 'RUTH.MARTINEZ@sakilacustomer.org', 12,1,'2006-02-14'),
   (20,2,'SHARON',   'ROBINSON', 'SHARON.ROBINSON@sakilacustomer.org',13,1,'2006-02-14');
 
-INSERT INTO inventory VALUES
+INSERT INTO inventory (inventory_id, film_id, store_id) VALUES
   (1,1,1),(2,1,1),(3,1,2),(4,2,1),(5,2,2),(6,3,1),(7,3,2),
   (8,4,1),(9,4,2),(10,5,1),(11,5,2),(12,6,1),(13,6,2),
   (14,7,1),(15,7,2),(16,8,1),(17,8,2),(18,9,1),(19,9,2),
@@ -288,7 +288,7 @@ INSERT INTO inventory VALUES
   (31,16,1),(32,16,2),(33,17,1),(34,17,2),(35,18,1),
   (36,19,1),(37,19,2),(38,20,1),(39,20,2),(40,1,2);
 
-INSERT INTO rental VALUES
+INSERT INTO rental (rental_id, rental_date, inventory_id, customer_id, return_date, staff_id) VALUES
   (1, '2005-05-24 22:53:30',1, 1, '2005-05-26 22:04:30',1),
   (2, '2005-05-24 22:54:33',2, 2, '2005-05-28 19:40:33',1),
   (3, '2005-05-25 00:39:22',3, 3, '2005-06-01 22:12:22',1),
