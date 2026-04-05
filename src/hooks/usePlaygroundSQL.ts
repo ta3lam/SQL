@@ -19,6 +19,7 @@ export function usePlaygroundSQL(customInitSQL: string) {
 
       // Run statements one-by-one to avoid sql.js WASM limits on large strings.
       // Split on ; followed by newline, strip comment lines, then run each.
+      // Wrap INSERT statements in a single transaction for ~50x faster bulk load.
       const stmts = customInitSQL
         .split(/;\r?\n/)
         .map(s =>
@@ -28,9 +29,12 @@ export function usePlaygroundSQL(customInitSQL: string) {
            .trim()
         )
         .filter(s => s.length > 0);
+
+      newDb.run('BEGIN;');
       for (const stmt of stmts) {
         newDb.run(stmt + ';');
       }
+      newDb.run('COMMIT;');
 
       dbRef.current = newDb;
       setDb(newDb);
