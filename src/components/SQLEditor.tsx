@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql } from '@codemirror/lang-sql';
 import { QueryResult } from '../types';
@@ -6,16 +6,33 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 interface SQLEditorProps {
   initialValue?: string;
+  injectedQuery?: string;
   onExecute: (query: string) => QueryResult;
   onReset?: () => void;
   height?: string;
 }
 
-export function SQLEditor({ initialValue = '', onExecute, onReset, height = '160px' }: SQLEditorProps) {
+export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset, height = '160px' }: SQLEditorProps) {
   const { t } = useLanguage();
   const [query, setQuery] = useState(initialValue);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
+
+  // When a sample query is injected from outside, update editor and auto-run it.
+  // The injectedQuery includes a \0-delimited suffix to allow re-clicking the same query.
+  const injectedRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!injectedQuery || injectedQuery === injectedRef.current) return;
+    injectedRef.current = injectedQuery;
+    const q = injectedQuery.split('\0')[0];
+    setQuery(q);
+    setIsExecuting(true);
+    setTimeout(() => {
+      const res = onExecute(q);
+      setResult(res);
+      setIsExecuting(false);
+    }, 80);
+  }, [injectedQuery, onExecute]);
 
   const handleExecute = useCallback(() => {
     if (!query.trim()) return;

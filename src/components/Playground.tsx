@@ -132,6 +132,7 @@ GROUP BY s.staff_id;`,
 export function Playground({ onExecute, onReset }: PlaygroundProps) {
   const { t } = useLanguage();
   const [activeDb, setActiveDb] = useState<ActiveDb>('company');
+  const [injectedQuery, setInjectedQuery] = useState<string | undefined>();
 
   const dvd = usePlaygroundSQL(dvdRentalSQL);
 
@@ -212,6 +213,7 @@ export function Playground({ onExecute, onReset }: PlaygroundProps) {
               <SQLEditor
                 key={activeDb}
                 initialValue={initialQuery}
+                injectedQuery={injectedQuery}
                 onExecute={currentExecute}
                 onReset={currentReset}
                 height="220px"
@@ -230,7 +232,7 @@ export function Playground({ onExecute, onReset }: PlaygroundProps) {
                 {sampleQueries.map((item, idx) => (
                   <button
                     key={idx}
-                    onClick={() => currentExecute(item.query)}
+                    onClick={() => setInjectedQuery(item.query + '\0' + idx)}
                     className="text-left w-full p-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-700"
                   >
                     <div className="flex items-start justify-between gap-3">
