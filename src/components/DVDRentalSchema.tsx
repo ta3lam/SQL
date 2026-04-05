@@ -200,7 +200,7 @@ const COLOR_MAP: Record<string, string> = {
 
 export function DVDRentalSchema() {
   const { t } = useLanguage();
-  const [expandedTable, setExpandedTable] = useState<string | null>('film');
+  const [expandedTable, setExpandedTable] = useState<string | null>(null);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm" dir="ltr">
