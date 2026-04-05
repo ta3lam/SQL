@@ -130,7 +130,7 @@ GROUP BY s.staff_id;`,
 ];
 
 export function Playground({ onExecute, onReset }: PlaygroundProps) {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [activeDb, setActiveDb] = useState<ActiveDb>('company');
   const [injectedQuery, setInjectedQuery] = useState<string | undefined>();
 
@@ -233,21 +233,21 @@ export function Playground({ onExecute, onReset }: PlaygroundProps) {
                   <button
                     key={idx}
                     onClick={() => setInjectedQuery(item.query + '\0' + idx)}
-                    className="text-left w-full p-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-700"
+                    className="w-full p-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-700 text-start"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
-                          {sampleLabels[idx] ?? item.query.split('\n')[0].trim()}
-                        </p>
-                        <code className="text-xs text-gray-400 dark:text-gray-500 font-mono line-clamp-1 mt-0.5" dir="ltr">
-                          {item.query.split('\n')[0].trim()}...
-                        </code>
-                      </div>
-                      <svg className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 mt-0.5 ${isRTL ? 'order-last' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
+                          {sampleLabels[idx] ?? item.query.split('\n')[0].trim()}
+                        </p>
+                        <code className="text-xs text-gray-400 dark:text-gray-500 font-mono line-clamp-1 mt-0.5 block" dir="ltr">
+                          {item.query.split('\n')[0].trim()}...
+                        </code>
+                      </div>
                     </div>
                   </button>
                 ))}
