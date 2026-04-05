@@ -16,7 +16,22 @@ export function usePlaygroundSQL(customInitSQL: string) {
       setLoading(true);
       const SQL = await initSqlJs({ locateFile: () => sqlWasmUrl });
       const newDb = new SQL.Database();
-      newDb.run(customInitSQL);
+
+      // Run statements one-by-one to avoid sql.js WASM limits on large strings.
+      // Split on ; followed by newline, strip comment lines, then run each.
+      const stmts = customInitSQL
+        .split(/;\r?\n/)
+        .map(s =>
+          s.split('\n')
+           .filter(line => !line.trim().startsWith('--'))
+           .join('\n')
+           .trim()
+        )
+        .filter(s => s.length > 0);
+      for (const stmt of stmts) {
+        newDb.run(stmt + ';');
+      }
+
       dbRef.current = newDb;
       setDb(newDb);
       setError(null);
