@@ -91,7 +91,7 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
                     <button
                       key={lesson.id}
                       onClick={() => onSelectLesson(lesson.id)}
-                      className={`w-full text-${isRTL ? 'right' : 'left'} px-3 py-2 rounded-lg transition-all duration-150 flex items-center gap-2.5 ${
+                      className={`w-full px-3 py-2 rounded-lg transition-all duration-150 flex items-center gap-2.5 ${isRTL ? 'flex-row-reverse text-right' : 'text-left'} ${
                         isCurrent
                           ? 'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700'
                           : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
