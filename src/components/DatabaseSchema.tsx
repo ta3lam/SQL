@@ -104,7 +104,7 @@ export function DatabaseSchema() {
   const [expandedTable, setExpandedTable] = useState<string | null>('employees');
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm" dir="ltr">
       {/* Header */}
       <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-3">
         <div className="flex items-center gap-2.5">
