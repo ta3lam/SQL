@@ -14,17 +14,26 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
   const [currentExercise, setCurrentExercise] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [exerciseResults, setExerciseResults] = useState<Record<number, boolean>>({});
+  const [wrongAnswer, setWrongAnswer] = useState(false);
 
   const exercise = exercises[currentExercise];
 
   const handleExecute = (query: string): QueryResult => {
     const result = onExecute(query);
+    setWrongAnswer(false);
 
     if (!result.error) {
-      setExerciseResults(prev => ({ ...prev, [exercise.id]: true }));
-
-      const allCompleted = exercises.every((ex) => exerciseResults[ex.id] || ex.id === exercise.id);
-      if (allCompleted) onComplete();
+      const passed = exercise.checkFunction(result.values ?? []);
+      if (passed) {
+        setExerciseResults(prev => {
+          const next = { ...prev, [exercise.id]: true };
+          const allCompleted = exercises.every((ex) => next[ex.id]);
+          if (allCompleted) onComplete();
+          return next;
+        });
+      } else {
+        setWrongAnswer(true);
+      }
     }
 
     return result;
@@ -34,6 +43,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
     if (currentExercise < exercises.length - 1) {
       setCurrentExercise(prev => prev + 1);
       setShowHint(false);
+      setWrongAnswer(false);
     }
   };
 
@@ -41,6 +51,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
     if (currentExercise > 0) {
       setCurrentExercise(prev => prev - 1);
       setShowHint(false);
+      setWrongAnswer(false);
     }
   };
 
@@ -138,17 +149,26 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
           height="120px"
         />
 
-        {/* Success message */}
-        {exerciseResults[exercise.id] && (
+        {/* Feedback messages */}
+        {exerciseResults[exercise.id] ? (
           <div className="mt-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
             <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm font-medium">{t.correct}</span>
             </div>
           </div>
-        )}
+        ) : wrongAnswer ? (
+          <div className="mt-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            <div className="flex items-start gap-2 text-red-700 dark:text-red-400">
+              <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm" dir="auto">{t.wrongAnswer}</span>
+            </div>
+          </div>
+        ) : null}
 
         {/* Navigation */}
         <div className="flex justify-between mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">

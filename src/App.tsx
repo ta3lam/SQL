@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { LessonContent } from './components/LessonContent';
 import { SQLEditor } from './components/SQLEditor';
@@ -13,10 +13,26 @@ type View = 'lesson' | 'playground';
 
 export default function App() {
   const { t, isRTL, lang, setLang } = useLanguage();
-  const [currentLessonId, setCurrentLessonId] = useState(1);
-  const [completedLessons, setCompletedLessons] = useState<number[]>([]);
+  const [currentLessonId, setCurrentLessonId] = useState<number>(() => {
+    const saved = localStorage.getItem('sql-mastery-current-lesson');
+    return saved ? parseInt(saved, 10) : 1;
+  });
+  const [completedLessons, setCompletedLessons] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('sql-mastery-completed');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [currentView, setCurrentView] = useState<View>('lesson');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem('sql-mastery-current-lesson', String(currentLessonId));
+  }, [currentLessonId]);
+
+  useEffect(() => {
+    localStorage.setItem('sql-mastery-completed', JSON.stringify(completedLessons));
+  }, [completedLessons]);
 
   const { loading, error, executeQuery, resetDatabase } = useSQL();
 

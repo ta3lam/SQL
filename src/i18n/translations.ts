@@ -38,6 +38,7 @@ export interface Translations {
   showHint: string;
   hideHint: string;
   correct: string;
+  wrongAnswer: string;
   previousExercise: string;
   nextExercise: string;
   // DatabaseSchema
@@ -119,7 +120,8 @@ export const translations: Record<Lang, Translations> = {
     exercisesCompleted: (done, total) => `${done}/${total} completed`,
     showHint: 'Show hint',
     hideHint: 'Hide hint',
-    correct: 'Correct! Query executed successfully 🎉',
+    correct: 'Correct! Well done 🎉',
+    wrongAnswer: 'Query ran but the result is not quite right — check your logic and try again.',
     previousExercise: 'Previous',
     nextExercise: 'Next exercise',
     // DatabaseSchema
@@ -238,7 +240,8 @@ export const translations: Record<Lang, Translations> = {
     exercisesCompleted: (done, total) => `${done}/${total} مكتمل`,
     showHint: 'إظهار التلميح',
     hideHint: 'إخفاء التلميح',
-    correct: 'صحيح! تم تنفيذ الاستعلام بنجاح 🎉',
+    correct: 'صحيح! أحسنت 🎉',
+    wrongAnswer: 'الاستعلام عمل لكن النتيجة غير صحيحة — راجع منطقك وحاول مجدداً.',
     previousExercise: 'السابق',
     nextExercise: 'التمرين التالي',
     // DatabaseSchema
