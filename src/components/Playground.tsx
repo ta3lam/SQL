@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SQLEditor } from './SQLEditor';
 import { DatabaseSchema } from './DatabaseSchema';
 import { DVDRentalSchema } from './DVDRentalSchema';
 import { QueryResult } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePlaygroundSQL } from '../hooks/usePlaygroundSQL';
-import { dvdRentalSQL } from '../data/dvdRental';
 
 type ActiveDb = 'company' | 'dvd';
 
@@ -134,7 +133,16 @@ export function Playground({ onExecute, onReset }: PlaygroundProps) {
   const [activeDb, setActiveDb] = useState<ActiveDb>('company');
   const [injectedQuery, setInjectedQuery] = useState<string | undefined>();
 
-  const dvd = usePlaygroundSQL(dvdRentalSQL);
+  // PERF 1: load 7.4 MB DVD SQL only when the user first switches to DVD tab
+  const [dvdSQL, setDvdSQL] = useState<string | null>(null);
+  useEffect(() => {
+    if (activeDb !== 'dvd' || dvdSQL !== null) return;
+    import('../data/dvdRental')
+      .then(m => m.loadDvdRentalSQL())
+      .then(setDvdSQL);
+  }, [activeDb, dvdSQL]);
+
+  const dvd = usePlaygroundSQL(dvdSQL);
 
   const currentExecute = activeDb === 'company' ? onExecute : dvd.executeQuery;
   const currentReset   = activeDb === 'company' ? onReset  : dvd.resetDatabase;

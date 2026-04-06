@@ -1,6 +1,5 @@
-import { useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePlaygroundSQL } from '../hooks/usePlaygroundSQL';
-import { dvdRentalSQL } from '../data/dvdRental';
 import { dvdLessons } from '../data/lessons_dvd';
 import { LessonContent } from './LessonContent';
 import { SQLEditor } from './SQLEditor';
@@ -15,6 +14,8 @@ interface DVDLessonAreaProps {
   onPrev: () => void;
   onNext: () => void;
   isRTL: boolean;
+  /** PERF 1: set to true the first time the user activates the DVD module */
+  shouldLoad: boolean;
 }
 
 export function DVDLessonArea({
@@ -24,9 +25,20 @@ export function DVDLessonArea({
   onPrev,
   onNext,
   isRTL,
+  shouldLoad,
 }: DVDLessonAreaProps) {
   const { t } = useLanguage();
-  const { loading, error, executeQuery, resetDatabase } = usePlaygroundSQL(dvdRentalSQL);
+
+  // PERF 1: lazy-load the 7.4 MB SQL file only when the DVD module is first opened
+  const [dvdSQL, setDvdSQL] = useState<string | null>(null);
+  useEffect(() => {
+    if (!shouldLoad || dvdSQL !== null) return;
+    import('../data/dvdRental')
+      .then(m => m.loadDvdRentalSQL())
+      .then(setDvdSQL);
+  }, [shouldLoad, dvdSQL]);
+
+  const { loading, error, executeQuery, resetDatabase } = usePlaygroundSQL(dvdSQL);
 
   const currentLesson = dvdLessons.find(l => l.id === currentLessonId) || dvdLessons[0];
   const currentIndex = dvdLessons.findIndex(l => l.id === currentLessonId);
