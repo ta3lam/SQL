@@ -28,6 +28,9 @@ export interface Translations {
   runQuery: string;
   reset: string;
   resetToOriginal: string;
+  copy: string;
+  copied: string;
+  copyQuery: string;
   sqlError: string;
   noRowsReturned: string;
   rowsReturned: (n: number) => string;
@@ -68,6 +71,9 @@ export interface Translations {
   queryFailed: string;
   // Language switcher
   switchLang: string;
+  // Dark mode toggle
+  darkMode: string;
+  lightMode: string;
   // Module switcher
   moduleCompany: string;
   moduleDvd: string;
@@ -116,6 +122,9 @@ export const translations: Record<Lang, Translations> = {
     runQuery: 'Run Query',
     reset: 'Reset',
     resetToOriginal: 'Reset to original example',
+    copy: 'Copy',
+    copied: 'Copied!',
+    copyQuery: 'Copy query to clipboard',
     sqlError: 'SQL Error',
     noRowsReturned: 'Query executed successfully — no rows returned.',
     rowsReturned: (n) => `${n} row${n !== 1 ? 's' : ''} returned`,
@@ -194,6 +203,9 @@ export const translations: Record<Lang, Translations> = {
     queryFailed: 'Query execution failed.',
     // Language switcher
     switchLang: 'العربية',
+    // Dark mode toggle
+    darkMode: 'Dark mode',
+    lightMode: 'Light mode',
     // Module switcher
     moduleCompany: 'Company DB',
     moduleDvd: 'DVD Rental',
@@ -245,6 +257,9 @@ export const translations: Record<Lang, Translations> = {
     runQuery: 'تشغيل الاستعلام',
     reset: 'إعادة تعيين',
     resetToOriginal: 'إعادة إلى المثال الأصلي',
+    copy: 'نسخ',
+    copied: 'تم النسخ!',
+    copyQuery: 'نسخ الاستعلام إلى الحافظة',
     sqlError: 'خطأ SQL',
     noRowsReturned: 'تم تنفيذ الاستعلام بنجاح — لم يتم إرجاع أي صفوف.',
     rowsReturned: (n) => {
@@ -328,6 +343,9 @@ export const translations: Record<Lang, Translations> = {
     queryFailed: 'فشل تنفيذ الاستعلام.',
     // Language switcher
     switchLang: 'English',
+    // Dark mode toggle
+    darkMode: 'الوضع المظلم',
+    lightMode: 'الوضع الفاتح',
     // Module switcher
     moduleCompany: 'قاعدة الشركة',
     moduleDvd: 'تأجير الأفلام',

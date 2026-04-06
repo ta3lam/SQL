@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* UX: class-based dark mode so the toggle button works (Tailwind v4 syntax) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Arabic font for RTL mode */
 html[lang="ar"],
 [dir="rtl"] {
