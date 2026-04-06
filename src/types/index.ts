@@ -20,8 +20,11 @@ export interface Exercise {
   checkFunction: (result: unknown[], query?: string) => boolean;
 }
 
+// BUG 7: typed SQL cell values — no more any[][]
+export type SqlValue = string | number | null | Uint8Array;
+
 export interface QueryResult {
   columns: string[];
-  values: any[][];
+  values: SqlValue[][];
   error?: string;
 }

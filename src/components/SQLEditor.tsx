@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+// BUG 12: sql.js is fully synchronous — no fake setTimeout needed
 import CodeMirror from '@uiw/react-codemirror';
 import { sql } from '@codemirror/lang-sql';
 import { QueryResult } from '../types';
@@ -16,7 +17,7 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
   const { t } = useLanguage();
   const [query, setQuery] = useState(initialValue);
   const [result, setResult] = useState<QueryResult | null>(null);
-  const [isExecuting, setIsExecuting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // When a sample query is injected from outside, update editor and auto-run it.
   // The injectedQuery includes a \0-delimited suffix to allow re-clicking the same query.
@@ -26,22 +27,16 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
     injectedRef.current = injectedQuery;
     const q = injectedQuery.split('\0')[0];
     setQuery(q);
-    setIsExecuting(true);
-    setTimeout(() => {
-      const res = onExecute(q);
-      setResult(res);
-      setIsExecuting(false);
-    }, 80);
+    // BUG 12: sql.js is synchronous — execute directly without fake setTimeout
+    const res = onExecute(q);
+    setResult(res);
   }, [injectedQuery, onExecute]);
 
   const handleExecute = useCallback(() => {
     if (!query.trim()) return;
-    setIsExecuting(true);
-    setTimeout(() => {
-      const res = onExecute(query);
-      setResult(res);
-      setIsExecuting(false);
-    }, 80);
+    // BUG 12: sql.js is synchronous — no setTimeout needed
+    const res = onExecute(query);
+    setResult(res);
   }, [query, onExecute]);
 
   const handleReset = useCallback(() => {
@@ -49,6 +44,15 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
     setResult(null);
     if (onReset) onReset();
   }, [initialValue, onReset]);
+
+  // UX: Copy query to clipboard
+  const handleCopy = useCallback(() => {
+    if (!query.trim()) return;
+    navigator.clipboard.writeText(query).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [query]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -90,26 +94,33 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
       <div className="flex gap-2">
         <button
           onClick={handleExecute}
-          disabled={isExecuting || !query.trim()}
+          disabled={!query.trim()}
           className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-2.5 rounded-lg font-medium hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm text-sm"
         >
-          {isExecuting ? (
-            <>
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              {t.running}
-            </>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {t.runQuery}
+        </button>
+
+        {/* UX: Copy query button */}
+        <button
+          onClick={handleCopy}
+          disabled={!query.trim()}
+          className="px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          title={t.copyQuery}
+        >
+          {copied ? (
+            <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
           ) : (
-            <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {t.runQuery}
-            </>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
           )}
+          {copied ? t.copied : t.copy}
         </button>
 
         {onReset && (

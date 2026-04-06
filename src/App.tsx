@@ -64,6 +64,18 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('lesson');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // UX: Dark mode toggle — persisted in localStorage, applies `dark` class to <html>
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('sql-mastery-dark');
+    if (saved !== null) return saved === 'true';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('sql-mastery-dark', String(darkMode));
+  }, [darkMode]);
+
   // Persist company module state
   useEffect(() => {
     localStorage.setItem('sql-mastery-current-lesson', String(currentLessonId));
@@ -328,6 +340,24 @@ export default function App() {
                   {t.resetDb}
                 </button>
               )}
+
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={() => setDarkMode(d => !d)}
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title={darkMode ? t.lightMode : t.darkMode}
+                aria-label={darkMode ? t.lightMode : t.darkMode}
+              >
+                {darkMode ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
 
               {/* Language Switcher */}
               <button
