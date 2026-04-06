@@ -247,7 +247,12 @@ export const translations: Record<Lang, Translations> = {
     resetToOriginal: 'إعادة إلى المثال الأصلي',
     sqlError: 'خطأ SQL',
     noRowsReturned: 'تم تنفيذ الاستعلام بنجاح — لم يتم إرجاع أي صفوف.',
-    rowsReturned: (n) => `تم إرجاع ${n} ${n === 1 ? 'صف' : 'صفوف'}`,
+    rowsReturned: (n) => {
+      if (n === 1) return 'تم إرجاع صف واحد';
+      if (n === 2) return 'تم إرجاع صفّان';
+      if (n >= 3 && n <= 10) return `تم إرجاع ${n} صفوف`;
+      return `تم إرجاع ${n} صفاً`;
+    },
     columnsCount: (n) => `${n} أعمدة`,
     // ExercisePanel
     exerciseOf: (current, total) => `التمرين ${current} من ${total}`,

@@ -3,6 +3,17 @@ import { Exercise, QueryResult } from '../types';
 import { SQLEditor } from './SQLEditor';
 import { useLanguage } from '../contexts/LanguageContext';
 
+// BUG 9: defined outside component to avoid re-creation on every render
+function NavArrow({ direction, isRTL }: { direction: 'prev' | 'next'; isRTL: boolean }) {
+  const isPrev = direction === 'prev';
+  const d = (isPrev !== isRTL) ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7';
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
+    </svg>
+  );
+}
+
 interface ExercisePanelProps {
   exercises: Exercise[];
   onExecute: (query: string) => QueryResult;
@@ -15,12 +26,16 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
   const [showHint, setShowHint] = useState(false);
   const [exerciseResults, setExerciseResults] = useState<Record<number, boolean>>({});
   const [wrongAnswer, setWrongAnswer] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [showSolution, setShowSolution] = useState(false);
 
   // FIX BUG 1: reset index when exercises prop changes (switching to shorter lesson)
   useEffect(() => {
     setCurrentExercise(0);
     setShowHint(false);
     setWrongAnswer(false);
+    setAttempts(0);
+    setShowSolution(false);
   }, [exercises]);
 
   const exercise = exercises[currentExercise];
@@ -35,6 +50,8 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
     if (!result.error) {
       const passed = exercise.checkFunction(result.values ?? [], query);
       if (passed) {
+        setAttempts(0);
+        setShowSolution(false);
         setExerciseResults(prev => {
           const next = { ...prev, [exercise.id]: true };
           const allCompleted = exercises.every((ex) => next[ex.id]);
@@ -43,6 +60,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
         });
       } else {
         setWrongAnswer(true);
+        setAttempts(prev => prev + 1);
       }
     }
 
@@ -54,6 +72,8 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
       setCurrentExercise(prev => prev + 1);
       setShowHint(false);
       setWrongAnswer(false);
+      setAttempts(0);
+      setShowSolution(false);
     }
   };
 
@@ -62,6 +82,8 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
       setCurrentExercise(prev => prev - 1);
       setShowHint(false);
       setWrongAnswer(false);
+      setAttempts(0);
+      setShowSolution(false);
     }
   };
 
@@ -71,17 +93,6 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
   const questionText = lang === 'ar' && exercise.questionAr ? exercise.questionAr : exercise.question;
   const hintText = lang === 'ar' && exercise.hintAr ? exercise.hintAr : exercise.hint;
 
-  // Navigation arrows that flip in RTL
-  const PrevArrow = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
-    </svg>
-  );
-  const NextArrow = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
-    </svg>
-  );
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
@@ -176,7 +187,25 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
               <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm" dir="auto">{t.wrongAnswer}</span>
+              <div className="flex-1">
+                <span className="text-sm" dir="auto">{t.wrongAnswer}</span>
+                {/* Show Solution after 3 failed attempts */}
+                {attempts >= 3 && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => setShowSolution(s => !s)}
+                      className="text-xs text-red-500 dark:text-red-400 underline hover:no-underline"
+                    >
+                      {showSolution ? (lang === 'ar' ? 'إخفاء الحل' : 'Hide solution') : (lang === 'ar' ? 'عرض الحل' : 'Show solution')}
+                    </button>
+                    {showSolution && (
+                      <pre className="mt-1 text-xs font-mono bg-red-100 dark:bg-red-900/40 rounded p-2 whitespace-pre-wrap break-all" dir="ltr">
+                        {exercise.expectedQuery}
+                      </pre>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ) : null}
@@ -188,7 +217,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
             disabled={currentExercise === 0}
             className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
           >
-            <PrevArrow />
+            <NavArrow direction="prev" isRTL={isRTL} />
             {t.previousExercise}
           </button>
           <button
@@ -197,7 +226,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
             className="px-3 py-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
           >
             {t.nextExercise}
-            <NextArrow />
+            <NavArrow direction="next" isRTL={isRTL} />
           </button>
         </div>
       </div>

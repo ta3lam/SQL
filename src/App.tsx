@@ -15,6 +15,17 @@ import { useLanguage } from './contexts/LanguageContext';
 type View = 'lesson' | 'playground';
 type Module = 'company' | 'dvd';
 
+// BUG 9: defined outside App to avoid re-creation on every render
+function NavArrow({ direction, isRTL }: { direction: 'prev' | 'next'; isRTL: boolean }) {
+  const isPrev = direction === 'prev';
+  const d = (isPrev !== isRTL) ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7';
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
+    </svg>
+  );
+}
+
 export default function App() {
   const { t, isRTL, lang, setLang } = useLanguage();
 
@@ -165,17 +176,6 @@ export default function App() {
 
   const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
 
-  // Arrow icons that flip in RTL
-  const PrevArrow = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
-    </svg>
-  );
-  const NextArrow = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
-    </svg>
-  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -398,7 +398,7 @@ export default function App() {
                   disabled={currentIndex === 0}
                   className="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
                 >
-                  <PrevArrow />
+                  <NavArrow direction="prev" isRTL={isRTL} />
                   {t.previous}
                 </button>
 
@@ -424,7 +424,7 @@ export default function App() {
                   className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
                 >
                   {t.next}
-                  <NextArrow />
+                  <NavArrow direction="next" isRTL={isRTL} />
                 </button>
               </div>
             </div>
