@@ -5,14 +5,19 @@ import { SQLEditor } from './components/SQLEditor';
 import { ExercisePanel } from './components/ExercisePanel';
 import { DatabaseSchema } from './components/DatabaseSchema';
 import { Playground } from './components/Playground';
+import { DVDLessonArea } from './components/DVDLessonArea';
 import { useSQL } from './hooks/useSQL';
 import { lessons } from './data/lessons';
+import { dvdLessons } from './data/lessons_dvd';
 import { useLanguage } from './contexts/LanguageContext';
 
 type View = 'lesson' | 'playground';
+type Module = 'company' | 'dvd';
 
 export default function App() {
   const { t, isRTL, lang, setLang } = useLanguage();
+
+  // Company module state
   const [currentLessonId, setCurrentLessonId] = useState<number>(() => {
     const saved = localStorage.getItem('sql-mastery-current-lesson');
     return saved ? parseInt(saved, 10) : 1;
@@ -23,9 +28,27 @@ export default function App() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+
+  // DVD module state
+  const [currentModule, setCurrentModule] = useState<Module>(() => {
+    const saved = localStorage.getItem('sql-mastery-module');
+    return (saved as Module) || 'company';
+  });
+  const [currentDvdLessonId, setCurrentDvdLessonId] = useState<number>(() => {
+    const saved = localStorage.getItem('sql-mastery-dvd-lesson');
+    return saved ? parseInt(saved, 10) : 101;
+  });
+  const [completedDvdLessons, setCompletedDvdLessons] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('sql-mastery-dvd-completed');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
   const [currentView, setCurrentView] = useState<View>('lesson');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // Persist company module state
   useEffect(() => {
     localStorage.setItem('sql-mastery-current-lesson', String(currentLessonId));
   }, [currentLessonId]);
@@ -34,10 +57,24 @@ export default function App() {
     localStorage.setItem('sql-mastery-completed', JSON.stringify(completedLessons));
   }, [completedLessons]);
 
+  // Persist module selection and DVD state
+  useEffect(() => {
+    localStorage.setItem('sql-mastery-module', currentModule);
+  }, [currentModule]);
+
+  useEffect(() => {
+    localStorage.setItem('sql-mastery-dvd-lesson', String(currentDvdLessonId));
+  }, [currentDvdLessonId]);
+
+  useEffect(() => {
+    localStorage.setItem('sql-mastery-dvd-completed', JSON.stringify(completedDvdLessons));
+  }, [completedDvdLessons]);
+
   const { loading, error, executeQuery, resetDatabase } = useSQL();
 
   const currentLesson = lessons.find(l => l.id === currentLessonId) || lessons[0];
 
+  // Company module handlers
   const handleLessonComplete = useCallback(() => {
     if (!completedLessons.includes(currentLessonId)) {
       setCompletedLessons(prev => [...prev, currentLessonId]);
@@ -59,6 +96,29 @@ export default function App() {
       window.scrollTo(0, 0);
     }
   }, [currentLessonId]);
+
+  // DVD module handlers
+  const handleDvdLessonComplete = useCallback(() => {
+    if (!completedDvdLessons.includes(currentDvdLessonId)) {
+      setCompletedDvdLessons(prev => [...prev, currentDvdLessonId]);
+    }
+  }, [currentDvdLessonId, completedDvdLessons]);
+
+  const goToNextDvdLesson = useCallback(() => {
+    const currentIndex = dvdLessons.findIndex(l => l.id === currentDvdLessonId);
+    if (currentIndex < dvdLessons.length - 1) {
+      setCurrentDvdLessonId(dvdLessons[currentIndex + 1].id);
+      window.scrollTo(0, 0);
+    }
+  }, [currentDvdLessonId]);
+
+  const goToPrevDvdLesson = useCallback(() => {
+    const currentIndex = dvdLessons.findIndex(l => l.id === currentDvdLessonId);
+    if (currentIndex > 0) {
+      setCurrentDvdLessonId(dvdLessons[currentIndex - 1].id);
+      window.scrollTo(0, 0);
+    }
+  }, [currentDvdLessonId]);
 
   if (loading) {
     return (
@@ -116,15 +176,29 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'block' : 'hidden'} flex-shrink-0`}>
-        <Sidebar
-          lessons={lessons}
-          currentLesson={currentLessonId}
-          onSelectLesson={(id) => {
-            setCurrentLessonId(id);
-            setCurrentView('lesson');
-          }}
-          completedLessons={completedLessons}
-        />
+        {currentModule === 'company' ? (
+          <Sidebar
+            lessons={lessons}
+            currentLesson={currentLessonId}
+            onSelectLesson={(id) => {
+              setCurrentLessonId(id);
+              setCurrentView('lesson');
+            }}
+            completedLessons={completedLessons}
+            module="company"
+          />
+        ) : (
+          <Sidebar
+            lessons={dvdLessons}
+            currentLesson={currentDvdLessonId}
+            onSelectLesson={(id) => {
+              setCurrentDvdLessonId(id);
+              setCurrentView('lesson');
+            }}
+            completedLessons={completedDvdLessons}
+            module="dvd"
+          />
+        )}
       </div>
 
       {/* Main Content */}
@@ -143,56 +217,89 @@ export default function App() {
                 </svg>
               </button>
 
+              {/* Module Switcher */}
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
-                  onClick={() => setCurrentView('lesson')}
+                  onClick={() => setCurrentModule('company')}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentView === 'lesson'
+                    currentModule === 'company'
                       ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    {t.lessons}
+                    🎓 {t.moduleCompany}
                   </span>
                 </button>
                 <button
-                  onClick={() => setCurrentView('playground')}
+                  onClick={() => setCurrentModule('dvd')}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentView === 'playground'
-                      ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    currentModule === 'dvd'
+                      ? 'bg-white dark:bg-gray-600 text-violet-600 dark:text-violet-400 shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                    {t.playground}
+                    🎬 {t.moduleDvd}
                   </span>
                 </button>
               </div>
+
+              {/* View Switcher — only show for company module (DVD has no playground for now) */}
+              {currentModule === 'company' && (
+                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                  <button
+                    onClick={() => setCurrentView('lesson')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      currentView === 'lesson'
+                        ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      {t.lessons}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setCurrentView('playground')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      currentView === 'playground'
+                        ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                      </svg>
+                      {t.playground}
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
-              {currentView === 'lesson' && (
+              {currentView === 'lesson' && currentModule === 'company' && (
                 <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
                   {t.lessonOf(currentIndex + 1, lessons.length)}
                 </span>
               )}
-              <button
-                onClick={resetDatabase}
-                className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title={t.resetDbTitle}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                {t.resetDb}
-              </button>
+              {currentModule === 'company' && (
+                <button
+                  onClick={resetDatabase}
+                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title={t.resetDbTitle}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {t.resetDb}
+                </button>
+              )}
 
               {/* Language Switcher */}
               <button
@@ -208,7 +315,16 @@ export default function App() {
 
         {/* Content */}
         <div className="p-4 sm:p-6">
-          {currentView === 'playground' ? (
+          {currentModule === 'dvd' ? (
+            <DVDLessonArea
+              currentLessonId={currentDvdLessonId}
+              completedLessons={completedDvdLessons}
+              onLessonComplete={handleDvdLessonComplete}
+              onPrev={goToPrevDvdLesson}
+              onNext={goToNextDvdLesson}
+              isRTL={isRTL}
+            />
+          ) : currentView === 'playground' ? (
             <Playground onExecute={executeQuery} onReset={resetDatabase} />
           ) : (
             <div className="max-w-5xl mx-auto space-y-6">
