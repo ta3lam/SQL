@@ -20,28 +20,32 @@ export default function App() {
   // Company module state
   const [currentLessonId, setCurrentLessonId] = useState<number>(() => {
     const saved = localStorage.getItem('sql-mastery-current-lesson');
-    return saved ? parseInt(saved, 10) : 1;
+    const parsed = saved ? parseInt(saved, 10) : NaN;
+    return !isNaN(parsed) && lessons.some(l => l.id === parsed) ? parsed : 1;
   });
   const [completedLessons, setCompletedLessons] = useState<number[]>(() => {
     try {
       const saved = localStorage.getItem('sql-mastery-completed');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) && parsed.every((n: unknown) => typeof n === 'number') ? parsed : [];
     } catch { return []; }
   });
 
   // DVD module state
   const [currentModule, setCurrentModule] = useState<Module>(() => {
     const saved = localStorage.getItem('sql-mastery-module');
-    return (saved as Module) || 'company';
+    return (saved === 'company' || saved === 'dvd') ? saved : 'company';
   });
   const [currentDvdLessonId, setCurrentDvdLessonId] = useState<number>(() => {
     const saved = localStorage.getItem('sql-mastery-dvd-lesson');
-    return saved ? parseInt(saved, 10) : 101;
+    const parsed = saved ? parseInt(saved, 10) : NaN;
+    return !isNaN(parsed) ? parsed : 101;
   });
   const [completedDvdLessons, setCompletedDvdLessons] = useState<number[]>(() => {
     try {
       const saved = localStorage.getItem('sql-mastery-dvd-completed');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) && parsed.every((n: unknown) => typeof n === 'number') ? parsed : [];
     } catch { return []; }
   });
 

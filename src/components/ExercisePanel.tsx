@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Exercise, QueryResult } from '../types';
 import { SQLEditor } from './SQLEditor';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -16,7 +16,17 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
   const [exerciseResults, setExerciseResults] = useState<Record<number, boolean>>({});
   const [wrongAnswer, setWrongAnswer] = useState(false);
 
+  // FIX BUG 1: reset index when exercises prop changes (switching to shorter lesson)
+  useEffect(() => {
+    setCurrentExercise(0);
+    setShowHint(false);
+    setWrongAnswer(false);
+  }, [exercises]);
+
   const exercise = exercises[currentExercise];
+
+  // FIX BUG 1: guard against out-of-bounds access
+  if (!exercise) return null;
 
   const handleExecute = (query: string): QueryResult => {
     const result = onExecute(query);
@@ -142,8 +152,9 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
           )}
         </div>
 
-        {/* Editor */}
+        {/* Editor — key forces remount on exercise change, clearing stale query (FIX BUG 4) */}
         <SQLEditor
+          key={currentExercise}
           initialValue=""
           onExecute={handleExecute}
           height="120px"
