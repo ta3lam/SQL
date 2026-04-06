@@ -81,10 +81,10 @@ export default function App() {
 
   // Company module handlers
   const handleLessonComplete = useCallback(() => {
-    if (!completedLessons.includes(currentLessonId)) {
-      setCompletedLessons(prev => [...prev, currentLessonId]);
-    }
-  }, [currentLessonId, completedLessons]);
+    setCompletedLessons(prev =>
+      prev.includes(currentLessonId) ? prev : [...prev, currentLessonId]
+    );
+  }, [currentLessonId]);
 
   const goToNextLesson = useCallback(() => {
     const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
@@ -104,10 +104,10 @@ export default function App() {
 
   // DVD module handlers
   const handleDvdLessonComplete = useCallback(() => {
-    if (!completedDvdLessons.includes(currentDvdLessonId)) {
-      setCompletedDvdLessons(prev => [...prev, currentDvdLessonId]);
-    }
-  }, [currentDvdLessonId, completedDvdLessons]);
+    setCompletedDvdLessons(prev =>
+      prev.includes(currentDvdLessonId) ? prev : [...prev, currentDvdLessonId]
+    );
+  }, [currentDvdLessonId]);
 
   const goToNextDvdLesson = useCallback(() => {
     const currentIndex = dvdLessons.findIndex(l => l.id === currentDvdLessonId);
@@ -179,8 +179,27 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'block' : 'hidden'} flex-shrink-0`}>
+
+      {/* Mobile overlay backdrop — closes sidebar on tap outside */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar — fixed drawer on mobile, static on desktop */}
+      <div className={`
+        fixed lg:static inset-y-0 z-30 flex-shrink-0
+        ${isRTL ? 'right-0' : 'left-0'}
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen
+          ? 'translate-x-0'
+          : isRTL ? 'translate-x-full' : '-translate-x-full'}
+        lg:translate-x-0
+        ${!sidebarOpen ? 'lg:hidden' : ''}
+      `}>
         {currentModule === 'company' ? (
           <Sidebar
             lessons={lessons}
@@ -188,6 +207,7 @@ export default function App() {
             onSelectLesson={(id) => {
               setCurrentLessonId(id);
               setCurrentView('lesson');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             completedLessons={completedLessons}
             module="company"
@@ -199,6 +219,7 @@ export default function App() {
             onSelectLesson={(id) => {
               setCurrentDvdLessonId(id);
               setCurrentView('lesson');
+              if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
             completedLessons={completedDvdLessons}
             module="dvd"
