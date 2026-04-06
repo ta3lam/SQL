@@ -11,6 +11,11 @@ export function usePlaygroundSQL(customInitSQL: string) {
   const [error, setError] = useState<string | null>(null);
   const dbRef = useRef<Database | null>(null);
 
+  // FIX BUG 2: tRef keeps translations current without making initDatabase depend on t.
+  // Previously, t in deps → language switch re-ran initDatabase → DB wiped.
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
+
   const initDatabase = useCallback(async () => {
     try {
       setLoading(true);
@@ -40,12 +45,12 @@ export function usePlaygroundSQL(customInitSQL: string) {
       setDb(newDb);
       setError(null);
     } catch (err) {
-      setError(t.dbInitError);
+      setError(tRef.current.dbInitError);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [customInitSQL, t]);
+  }, [customInitSQL]); // t removed: language changes no longer re-init the DB
 
   useEffect(() => {
     initDatabase();
@@ -54,7 +59,7 @@ export function usePlaygroundSQL(customInitSQL: string) {
 
   const executeQuery = useCallback((query: string): QueryResult => {
     if (!dbRef.current) {
-      return { columns: [], values: [], error: t.dbNotAvailable };
+      return { columns: [], values: [], error: tRef.current.dbNotAvailable };
     }
 
     try {
@@ -81,7 +86,7 @@ export function usePlaygroundSQL(customInitSQL: string) {
           ) {
             lastResult = {
               columns: ['Result'],
-              values: [[t.querySuccess(changed)]],
+              values: [[tRef.current.querySuccess(changed)]],
             };
           } else {
             lastResult = { columns: [], values: [] };
@@ -99,10 +104,10 @@ export function usePlaygroundSQL(customInitSQL: string) {
       return {
         columns: [],
         values: [],
-        error: err instanceof Error ? err.message : t.queryFailed,
+        error: err instanceof Error ? err.message : tRef.current.queryFailed,
       };
     }
-  }, [t]);
+  }, []); // tRef never changes reference, safe with empty deps
 
   const resetDatabase = useCallback(() => {
     if (dbRef.current) dbRef.current.close();
