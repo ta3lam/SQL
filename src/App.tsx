@@ -228,7 +228,7 @@ export default function App() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto min-w-0">
+      <main id="main-content" className="flex-1 overflow-y-auto min-w-0" tabIndex={-1}>
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
           <div className="px-4 sm:px-6 py-3 flex items-center justify-between">
@@ -237,6 +237,8 @@ export default function App() {
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 title={t.toggleSidebar}
+                aria-label={t.toggleSidebar}
+                aria-expanded={sidebarOpen}
               >
                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -396,17 +398,20 @@ export default function App() {
                 <button
                   onClick={goToPrevLesson}
                   disabled={currentIndex === 0}
+                  aria-label={t.previous}
                   className="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
                 >
                   <NavArrow direction="prev" isRTL={isRTL} />
                   {t.previous}
                 </button>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" role="group" aria-label="lesson progress">
                   {lessons.slice(Math.max(0, currentIndex - 2), Math.min(lessons.length, currentIndex + 3)).map((l) => (
                     <button
                       key={l.id}
                       onClick={() => setCurrentLessonId(l.id)}
+                      aria-label={`Lesson ${l.id}${l.id === currentLessonId ? ' (current)' : completedLessons.includes(l.id) ? ' (completed)' : ''}`}
+                      aria-current={l.id === currentLessonId ? 'true' : undefined}
                       className={`w-2 h-2 rounded-full transition-all ${
                         l.id === currentLessonId
                           ? 'bg-indigo-500 w-4'
@@ -421,6 +426,7 @@ export default function App() {
                 <button
                   onClick={goToNextLesson}
                   disabled={currentIndex === lessons.length - 1}
+                  aria-label={t.next}
                   className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
                 >
                   {t.next}

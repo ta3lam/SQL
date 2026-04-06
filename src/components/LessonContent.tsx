@@ -87,7 +87,7 @@ export function LessonContent({ lesson }: LessonContentProps) {
             ),
             table: ({ children }: { children?: ReactNode }) => (
               <div className="overflow-x-auto my-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <table className="min-w-full" dir="ltr">
+                <table className="min-w-full" dir="auto">
                   {children}
                 </table>
               </div>
@@ -104,12 +104,12 @@ export function LessonContent({ lesson }: LessonContentProps) {
               </tr>
             ),
             th: ({ children }: { children?: ReactNode }) => (
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-600 uppercase tracking-wide whitespace-nowrap">
+              <th className="px-4 py-2.5 text-start text-xs font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-600 uppercase tracking-wide whitespace-nowrap">
                 {children}
               </th>
             ),
             td: ({ children }: { children?: ReactNode }) => (
-              <td className="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700/50 text-xs" dir="ltr">
+              <td className="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700/50 text-xs" dir="auto">
                 {children}
               </td>
             ),

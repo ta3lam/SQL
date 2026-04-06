@@ -107,15 +107,17 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
             </div>
             <div>
               <h3 className="font-semibold text-sm">{t.exerciseOf(currentExercise + 1, exercises.length)}</h3>
-              <p className="text-amber-100 text-xs">{t.exercisesCompleted(completedCount, exercises.length)}</p>
+              <p className="text-amber-50 text-xs">{t.exercisesCompleted(completedCount, exercises.length)}</p>
             </div>
           </div>
           {/* Progress dots */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5" role="group" aria-label="exercise progress">
             {exercises.map((_, idx) => (
               <button
                 key={idx}
-                onClick={() => { setCurrentExercise(idx); setShowHint(false); }}
+                onClick={() => { setCurrentExercise(idx); setShowHint(false); setAttempts(0); setShowSolution(false); }}
+                aria-label={`Exercise ${idx + 1}${exerciseResults[exercises[idx].id] ? ' (completed)' : idx === currentExercise ? ' (current)' : ''}`}
+                aria-current={idx === currentExercise ? 'true' : undefined}
                 className={`w-2.5 h-2.5 rounded-full transition-all ${
                   exerciseResults[exercises[idx].id]
                     ? 'bg-emerald-300'
