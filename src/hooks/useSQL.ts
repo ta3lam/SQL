@@ -12,6 +12,11 @@ export function useSQL() {
   const [error, setError] = useState<string | null>(null);
   const dbRef = useRef<Database | null>(null);
 
+  // FIX BUG 2: tRef keeps translations current without making initDatabase depend on t.
+  // Previously, t was a dep of initDatabase → language switch triggered DB re-init → data wiped.
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
+
   const initDatabase = useCallback(async () => {
     try {
       setLoading(true);
@@ -22,12 +27,12 @@ export function useSQL() {
       setDb(newDb);
       setError(null);
     } catch (err) {
-      setError(t.dbInitError);
+      setError(tRef.current.dbInitError);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, []); // empty deps: stable across language changes
 
   useEffect(() => {
     initDatabase();
@@ -36,7 +41,7 @@ export function useSQL() {
 
   const executeQuery = useCallback((query: string): QueryResult => {
     if (!dbRef.current) {
-      return { columns: [], values: [], error: t.dbNotAvailable };
+      return { columns: [], values: [], error: tRef.current.dbNotAvailable };
     }
 
     try {
@@ -63,7 +68,7 @@ export function useSQL() {
           ) {
             lastResult = {
               columns: ['Result'],
-              values: [[t.querySuccess(changed)]],
+              values: [[tRef.current.querySuccess(changed)]],
             };
           } else {
             lastResult = { columns: [], values: [] };
@@ -81,10 +86,10 @@ export function useSQL() {
       return {
         columns: [],
         values: [],
-        error: err instanceof Error ? err.message : t.queryFailed,
+        error: err instanceof Error ? err.message : tRef.current.queryFailed,
       };
     }
-  }, [t]);
+  }, []); // tRef never changes reference, safe with empty deps
 
   const resetDatabase = useCallback(() => {
     if (dbRef.current) dbRef.current.close();

@@ -6,6 +6,7 @@ import { ExercisePanel } from './components/ExercisePanel';
 import { DatabaseSchema } from './components/DatabaseSchema';
 import { Playground } from './components/Playground';
 import { DVDLessonArea } from './components/DVDLessonArea';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useSQL } from './hooks/useSQL';
 import { lessons } from './data/lessons';
 import { dvdLessons } from './data/lessons_dvd';
@@ -319,16 +320,20 @@ export default function App() {
 
         {/* Content */}
         <div className="p-4 sm:p-6">
-          {currentModule === 'dvd' ? (
-            <DVDLessonArea
-              currentLessonId={currentDvdLessonId}
-              completedLessons={completedDvdLessons}
-              onLessonComplete={handleDvdLessonComplete}
-              onPrev={goToPrevDvdLesson}
-              onNext={goToNextDvdLesson}
-              isRTL={isRTL}
-            />
-          ) : currentView === 'playground' ? (
+          {/* FIX BUG 8: DVDLessonArea stays mounted (hidden) to avoid re-initializing 7.4MB DB on every module switch */}
+          <div className={currentModule === 'dvd' ? 'block' : 'hidden'}>
+            <ErrorBoundary>
+              <DVDLessonArea
+                currentLessonId={currentDvdLessonId}
+                completedLessons={completedDvdLessons}
+                onLessonComplete={handleDvdLessonComplete}
+                onPrev={goToPrevDvdLesson}
+                onNext={goToNextDvdLesson}
+                isRTL={isRTL}
+              />
+            </ErrorBoundary>
+          </div>
+          {currentModule === 'company' && (currentView === 'playground' ? (
             <Playground onExecute={executeQuery} onReset={resetDatabase} />
           ) : (
             <div className="max-w-5xl mx-auto space-y-6">
@@ -356,11 +361,13 @@ export default function App() {
 
               {/* Exercises */}
               {currentLesson.exercises.length > 0 && (
-                <ExercisePanel
-                  exercises={currentLesson.exercises}
-                  onExecute={executeQuery}
-                  onComplete={handleLessonComplete}
-                />
+                <ErrorBoundary>
+                  <ExercisePanel
+                    exercises={currentLesson.exercises}
+                    onExecute={executeQuery}
+                    onComplete={handleLessonComplete}
+                  />
+                </ErrorBoundary>
               )}
 
               {/* Navigation */}
@@ -400,7 +407,7 @@ export default function App() {
                 </button>
               </div>
             </div>
-          )}
+          ))}
         </div>
       </main>
     </div>
