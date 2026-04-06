@@ -6,6 +6,7 @@ interface SidebarProps {
   currentLesson: number;
   onSelectLesson: (id: number) => void;
   completedLessons: number[];
+  module?: 'company' | 'dvd';
 }
 
 const LEVEL_GROUPS = [
@@ -22,10 +23,18 @@ const LEVEL_GROUPS = [
   { ids: [39, 40, 41, 42] },
 ];
 
-export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLessons }: SidebarProps) {
+const DVD_LEVEL_GROUPS = [
+  { ids: [101, 102, 103] },
+  { ids: [104, 105] },
+  { ids: [106, 107, 108] },
+];
+
+export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLessons, module = 'company' }: SidebarProps) {
   const { t, isRTL, lang } = useLanguage();
   const completedCount = completedLessons.length;
   const progressPct = Math.round((completedCount / lessons.length) * 100);
+  const activeGroups = module === 'dvd' ? DVD_LEVEL_GROUPS : LEVEL_GROUPS;
+  const activeLevels = module === 'dvd' ? t.dvdLevels : t.levels;
 
   return (
     <aside className={`w-72 bg-white dark:bg-gray-800 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 h-screen overflow-y-auto sticky top-0 flex flex-col`}>
@@ -60,13 +69,13 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
 
       {/* Lesson List with Level Groups */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        {LEVEL_GROUPS.map((group, groupIndex) => {
+        {activeGroups.map((group, groupIndex) => {
           const groupLessons = lessons.filter(l => group.ids.includes(l.id));
           if (groupLessons.length === 0) return null;
 
           const groupCompleted = groupLessons.filter(l => completedLessons.includes(l.id)).length;
           const allDone = groupCompleted === groupLessons.length;
-          const levelLabel = t.levels[groupIndex];
+          const levelLabel = activeLevels[groupIndex];
 
           return (
             <div key={groupIndex}>

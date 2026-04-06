@@ -68,6 +68,11 @@ export interface Translations {
   queryFailed: string;
   // Language switcher
   switchLang: string;
+  // Module switcher
+  moduleCompany: string;
+  moduleDvd: string;
+  // DVD sidebar levels
+  dvdLevels: string[];
 }
 
 export const translations: Record<Lang, Translations> = {
@@ -189,6 +194,15 @@ export const translations: Record<Lang, Translations> = {
     queryFailed: 'Query execution failed.',
     // Language switcher
     switchLang: 'العربية',
+    // Module switcher
+    moduleCompany: 'Company DB',
+    moduleDvd: 'DVD Rental',
+    // DVD sidebar levels
+    dvdLevels: [
+      'Level 1 — Discovery',
+      'Level 2 — Relationships',
+      'Level 3 — Analytics',
+    ],
   },
 
   ar: {
@@ -309,5 +323,14 @@ export const translations: Record<Lang, Translations> = {
     queryFailed: 'فشل تنفيذ الاستعلام.',
     // Language switcher
     switchLang: 'English',
+    // Module switcher
+    moduleCompany: 'قاعدة الشركة',
+    moduleDvd: 'تأجير الأفلام',
+    // DVD sidebar levels
+    dvdLevels: [
+      'المستوى 1 — الاستكشاف',
+      'المستوى 2 — العلاقات',
+      'المستوى 3 — التحليلات',
+    ],
   },
 };
