@@ -194,7 +194,11 @@ function ResultTable({ result }: { result: QueryResult }) {
             {result.values.map((row, i) => (
               <tr key={i} className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${i % 2 === 0 ? '' : 'bg-gray-50/50 dark:bg-gray-800/30'}`}>
                 {row.map((cell, j) => (
-                  <td key={j} className="px-3 py-2 text-gray-700 dark:text-gray-300 whitespace-nowrap max-w-xs truncate font-mono text-xs">
+                  <td
+                    key={j}
+                    className="px-3 py-2 text-gray-700 dark:text-gray-300 whitespace-nowrap max-w-xs truncate font-mono text-xs cursor-help"
+                    title={cell === null ? 'NULL' : String(cell)}
+                  >
                     {cell === null ? (
                       <span className="text-gray-400 italic font-sans">NULL</span>
                     ) : (
