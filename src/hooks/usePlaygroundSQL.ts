@@ -4,7 +4,8 @@ import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { QueryResult } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
-export function usePlaygroundSQL(customInitSQL: string) {
+// PERF 1: accepts string | null — when null the DB won't init yet (SQL not loaded)
+export function usePlaygroundSQL(customInitSQL: string | null) {
   const { t } = useLanguage();
   const [db, setDb] = useState<Database | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,9 @@ export function usePlaygroundSQL(customInitSQL: string) {
   useEffect(() => { tRef.current = t; }, [t]);
 
   const initDatabase = useCallback(async () => {
+    // PERF 1: wait until the SQL chunk has been loaded before initialising
+    if (customInitSQL === null) return;
+
     try {
       setLoading(true);
       const SQL = await initSqlJs({ locateFile: () => sqlWasmUrl });

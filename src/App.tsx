@@ -64,6 +64,10 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('lesson');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // PERF 1: track whether the DVD module was ever activated so the 7.4 MB SQL
+  // is only fetched/parsed on first visit — never on app startup.
+  const [dvdEverActivated, setDvdEverActivated] = useState(currentModule === 'dvd');
+
   // UX: Dark mode toggle — persisted in localStorage, applies `dark` class to <html>
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('sql-mastery-dark');
@@ -272,7 +276,7 @@ export default function App() {
                   </span>
                 </button>
                 <button
-                  onClick={() => setCurrentModule('dvd')}
+                  onClick={() => { setCurrentModule('dvd'); setDvdEverActivated(true); }}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     currentModule === 'dvd'
                       ? 'bg-white dark:bg-gray-600 text-violet-600 dark:text-violet-400 shadow-sm'
@@ -383,6 +387,7 @@ export default function App() {
                 onPrev={goToPrevDvdLesson}
                 onNext={goToNextDvdLesson}
                 isRTL={isRTL}
+                shouldLoad={dvdEverActivated}
               />
             </ErrorBoundary>
           </div>
