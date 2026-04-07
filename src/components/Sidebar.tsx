@@ -20,13 +20,15 @@ const LEVEL_GROUPS = [
   { ids: [26, 27, 28, 29] },
   { ids: [30, 31, 32, 33] },
   { ids: [34, 35, 36, 37, 38] },
-  { ids: [39, 40, 41, 42] },
+  { ids: [39, 40, 41, 42, 43, 44] },
 ];
 
 const DVD_LEVEL_GROUPS = [
   { ids: [101, 102, 103] },
-  { ids: [104, 105] },
-  { ids: [106, 107, 108] },
+  { ids: [104, 105, 106] },
+  { ids: [107, 108, 109] },
+  { ids: [110, 111, 112] },
+  { ids: [113, 114] },
 ];
 
 export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLessons, module = 'company' }: SidebarProps) {

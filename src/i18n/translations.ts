@@ -217,6 +217,8 @@ export const translations: Record<Lang, Translations> = {
       'Level 1 — Discovery',
       'Level 2 — Relationships',
       'Level 3 — Analytics',
+      'Level 4 — Advanced Queries',
+      'Level 5 — Expert',
     ],
     // Mark as complete
     markComplete: 'Mark as Complete',
@@ -371,6 +373,8 @@ export const translations: Record<Lang, Translations> = {
       'المستوى 1 — الاستكشاف',
       'المستوى 2 — العلاقات',
       'المستوى 3 — التحليلات',
+      'المستوى 4 — استعلامات متقدمة',
+      'المستوى 5 — خبير',
     ],
     // Mark as complete
     markComplete: 'تمييز كمكتمل',

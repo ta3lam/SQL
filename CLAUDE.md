@@ -37,7 +37,7 @@ Two SQL hooks manage separate database instances:
 ### Module System
 
 Two independent modules share the same UI shell but use separate SQL instances:
-- **Company module**: 42 lessons across 4 parts (`lessons_part1–4.ts`) + playground with Company DB schema
+- **Company module**: 44 lessons across 4 parts (`lessons_part1–4.ts`) + playground with Company DB schema
 - **DVD module**: 8 lessons (`lessons_dvd.ts`) using the 7.4 MB DVD Rental DB (PostgreSQL Sakila dataset)
 
 **DVD lazy-loading**: The DVD SQL (`dvdRental.ts`) is only imported and initialized when the user first activates the DVD module — never on startup. This keeps the initial bundle at ~2.3 MB instead of ~10 MB.
@@ -57,8 +57,14 @@ Two independent modules share the same UI shell but use separate SQL instances:
 ### Lesson Data Structure
 
 Each lesson in `src/data/lessons_part*.ts` follows the `Lesson` type from `src/types/index.ts`:
-- `id`, `title` (EN + AR), `difficulty`, `content` (markdown, EN + AR)
-- `exercises[]`: each with `question`, `hint`, `solution`, `validationQuery` (optional override for checking answers)
+- `id`, `title`/`titleAr`, `description`/`descriptionAr`, `content`/`contentAr` (markdown), `example` (runnable SQL shown in the "Try it out" editor)
+- `exercises[]`: each with `question`/`questionAr`, `hint`/`hintAr`, `expectedQuery`, and `checkFunction: (result, query) => boolean` for validating the learner's answer
+
+All `*Ar` fields are optional — if omitted the English version is shown in both languages. The `checkFunction` receives the raw result rows and the raw query string, so validation can be structural (regex on query) or data-driven (inspect result rows).
+
+### Translations
+
+All UI strings live in `src/i18n/translations.ts` as a `Record<'en'|'ar', Translations>`. The `Translations` interface enforces both languages stay in sync — add new keys to the interface first, then implement in both `en` and `ar` blocks. Arabic plural forms follow a 4-tier pattern (1 / 2 / 3–10 / 11+) already established for `rowsReturned`, `columnsCount`, and `querySuccess`.
 
 ### Deployment
 
