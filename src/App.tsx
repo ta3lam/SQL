@@ -428,6 +428,30 @@ export default function App() {
                 </ErrorBoundary>
               )}
 
+              {/* Mark as Complete — shown for lessons with no exercises */}
+              {currentLesson.exercises.length === 0 && (
+                <div className="flex justify-center">
+                  {completedLessons.includes(currentLessonId) ? (
+                    <div className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-200 dark:border-emerald-800 text-sm font-medium">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {t.lessonCompleted}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleLessonComplete}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 shadow-sm transition-all text-sm font-medium"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {t.markComplete}
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Navigation */}
               <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button

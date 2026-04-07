@@ -73,9 +73,12 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
             </div>
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">{t.sqlEditor}</span>
           </div>
-          <kbd className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded font-mono">
-            {t.ctrlEnterToRun}
-          </kbd>
+          <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 select-none">
+            <kbd className="bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded font-mono shadow-sm">Ctrl</kbd>
+            <span className="text-gray-400 dark:text-gray-500">+</span>
+            <kbd className="bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded font-mono shadow-sm">↵</kbd>
+            <span className="hidden sm:inline ms-1 text-gray-400 dark:text-gray-500">{t.runQuery}</span>
+          </span>
         </div>
         <div onKeyDown={handleKeyDown}>
           <CodeMirror

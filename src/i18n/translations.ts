@@ -79,6 +79,9 @@ export interface Translations {
   moduleDvd: string;
   // DVD sidebar levels
   dvdLevels: string[];
+  // Mark as complete
+  markComplete: string;
+  lessonCompleted: string;
 }
 
 export const translations: Record<Lang, Translations> = {
@@ -215,6 +218,9 @@ export const translations: Record<Lang, Translations> = {
       'Level 2 — Relationships',
       'Level 3 — Analytics',
     ],
+    // Mark as complete
+    markComplete: 'Mark as Complete',
+    lessonCompleted: '✅ Lesson completed',
   },
 
   ar: {
@@ -226,7 +232,7 @@ export const translations: Record<Lang, Translations> = {
     // Header
     toggleSidebar: 'إظهار/إخفاء الشريط الجانبي',
     lessons: 'الدروس',
-    playground: 'الملعب',
+    playground: 'بيئة التجربة',
     lessonOf: (current, total) => `الدرس ${current} من ${total}`,
     resetDb: 'إعادة تعيين',
     resetDbTitle: 'إعادة تعيين جميع البيانات إلى الإعدادات الافتراضية',
@@ -236,7 +242,7 @@ export const translations: Record<Lang, Translations> = {
     // Sidebar
     appTitle: 'SQL Mastery',
     appSubtitle: 'من الصفر إلى الاحتراف',
-    lessonsProgress: (done, total) => `${done} / ${total} دروس`,
+    lessonsProgress: (done, total) => `${done} من ${total} درساً`,
     levels: [
       'المستوى 0 — مقدمة',
       'المستوى 1 — SELECT والأساسيات',
@@ -268,19 +274,24 @@ export const translations: Record<Lang, Translations> = {
       if (n >= 3 && n <= 10) return `تم إرجاع ${n} صفوف`;
       return `تم إرجاع ${n} صفاً`;
     },
-    columnsCount: (n) => `${n} أعمدة`,
+    columnsCount: (n) => {
+      if (n === 1) return 'عمود واحد';
+      if (n === 2) return 'عمودان';
+      if (n >= 3 && n <= 10) return `${n} أعمدة`;
+      return `${n} عموداً`;
+    },
     // ExercisePanel
     exerciseOf: (current, total) => `التمرين ${current} من ${total}`,
-    exercisesCompleted: (done, total) => `${done}/${total} مكتمل`,
+    exercisesCompleted: (done, total) => `${done} من ${total} مكتملة`,
     showHint: 'إظهار التلميح',
     hideHint: 'إخفاء التلميح',
-    correct: 'صحيح! أحسنت 🎉',
-    wrongAnswer: 'الاستعلام عمل لكن النتيجة غير صحيحة — راجع منطقك وحاول مجدداً.',
+    correct: '✅ ممتاز! إجابة صحيحة تماماً، استمر هكذا! 🎉',
+    wrongAnswer: 'الاستعلام نُفِّذ لكن النتيجة لا تطابق المطلوب — راجع الشرط أو الترتيب وأعد المحاولة.',
     previousExercise: 'السابق',
     nextExercise: 'التمرين التالي',
     // DatabaseSchema
     databaseSchema: 'مخطط قاعدة البيانات',
-    tablesCount: '7 جداول — انقر للتوسيع',
+    tablesCount: '٧ جداول — انقر للتوسيع',
     columnHeader: 'العمود',
     typeHeader: 'النوع',
     keyHeader: 'المفتاح',
@@ -308,7 +319,7 @@ export const translations: Record<Lang, Translations> = {
       'المخطط التنظيمي (موظف ← مدير)',
     ],
     companyDb: 'قاعدة بيانات الشركة',
-    dvdRentalDb: 'إيجار أفلام DVD',
+    dvdRentalDb: 'قاعدة بيانات DVD',
     dvdRentalInitialQuery: `-- مرحباً بك في ملعب قاعدة بيانات DVD!\n-- تحاكي هذه القاعدة متجر تأجير أفلام فيديو.\n-- 15 جدولاً: film, actor, customer, rental, payment, ...\n\nSELECT f.title, f.rating, f.rental_rate, c.name AS category\nFROM film f\nJOIN film_category fc ON f.film_id = fc.film_id\nJOIN category c ON fc.category_id = c.category_id\nORDER BY f.rental_rate DESC\nLIMIT 10;`,
     dvdRentalSampleQueryLabels: [
       'أكثر 10 أفلام استئجاراً',
@@ -318,7 +329,7 @@ export const translations: Record<Lang, Translations> = {
       'عدد الأفلام ومتوسط السعر حسب الفئة',
       'أداء الموظفين في الدفعات',
     ],
-    dvdRentalTablesCount: '15 جدولاً — انقر للتوسيع',
+    dvdRentalTablesCount: '١٥ جدولاً — انقر للتوسيع',
     dvdTableDescriptions: {
       country:       '109 صفوف — الدول',
       city:          '600 صفاً — المدن مع رابط الدولة',
@@ -339,7 +350,13 @@ export const translations: Record<Lang, Translations> = {
     // useSQL messages
     dbInitError: 'فشل تهيئة محرك قاعدة البيانات.',
     dbNotAvailable: 'قاعدة البيانات غير متاحة.',
-    querySuccess: (rows) => `✅ تم تنفيذ الاستعلام بنجاح.${rows > 0 ? ` ${rows} صف/صفوف متأثرة.` : ''}`,
+    querySuccess: (rows) => {
+      if (rows === 0) return '✅ تم تنفيذ الاستعلام بنجاح.';
+      if (rows === 1) return '✅ تم تنفيذ الاستعلام بنجاح. صف واحد متأثر.';
+      if (rows === 2) return '✅ تم تنفيذ الاستعلام بنجاح. صفّان متأثران.';
+      if (rows >= 3 && rows <= 10) return `✅ تم تنفيذ الاستعلام بنجاح. ${rows} صفوف متأثرة.`;
+      return `✅ تم تنفيذ الاستعلام بنجاح. ${rows} صفاً متأثراً.`;
+    },
     queryFailed: 'فشل تنفيذ الاستعلام.',
     // Language switcher
     switchLang: 'English',
@@ -347,13 +364,16 @@ export const translations: Record<Lang, Translations> = {
     darkMode: 'الوضع المظلم',
     lightMode: 'الوضع الفاتح',
     // Module switcher
-    moduleCompany: 'قاعدة الشركة',
-    moduleDvd: 'تأجير الأفلام',
+    moduleCompany: 'قاعدة بيانات الشركة',
+    moduleDvd: 'قاعدة بيانات DVD',
     // DVD sidebar levels
     dvdLevels: [
       'المستوى 1 — الاستكشاف',
       'المستوى 2 — العلاقات',
       'المستوى 3 — التحليلات',
     ],
+    // Mark as complete
+    markComplete: 'تمييز كمكتمل',
+    lessonCompleted: '✅ تم إكمال الدرس',
   },
 };

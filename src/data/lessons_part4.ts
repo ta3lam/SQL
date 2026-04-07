@@ -3157,4 +3157,516 @@ ORDER BY category, cat_rank;`,
       },
     ],
   },
+
+  // ════════════════════════════════════════════════════
+  //  LESSON 43 — CASE WHEN
+  // ════════════════════════════════════════════════════
+  {
+    id: 43,
+    title: 'CASE WHEN — Conditional Logic',
+    titleAr: 'CASE WHEN — المنطق الشرطي',
+    description: 'Use CASE WHEN to add conditional columns, classify data, and pivot results.',
+    descriptionAr: 'استخدم CASE WHEN لإضافة أعمدة شرطية وتصنيف البيانات وتحويل النتائج.',
+    content: `
+## CASE WHEN — Conditional Logic in SQL
+
+\`CASE WHEN\` is SQL's version of an if/else statement. It lets you return different values based on conditions — directly inside a \`SELECT\`, \`ORDER BY\`, or \`GROUP BY\`.
+
+---
+
+## Basic Syntax
+
+\`\`\`sql
+CASE
+  WHEN condition1 THEN result1
+  WHEN condition2 THEN result2
+  ...
+  ELSE default_result
+END
+\`\`\`
+
+The \`ELSE\` clause is optional. If omitted and no \`WHEN\` matches, the result is \`NULL\`.
+
+---
+
+## Example 1 — Classifying Employees by Salary
+
+\`\`\`sql
+SELECT
+  name,
+  salary,
+  CASE
+    WHEN salary >= 8000 THEN 'Senior'
+    WHEN salary >= 5000 THEN 'Mid-level'
+    ELSE 'Junior'
+  END AS grade
+FROM employees
+ORDER BY salary DESC;
+\`\`\`
+
+---
+
+## Example 2 — Labelling Order Status
+
+\`\`\`sql
+SELECT
+  id,
+  total_amount,
+  CASE status
+    WHEN 'delivered' THEN '✅ Done'
+    WHEN 'shipped'   THEN '🚚 On the way'
+    WHEN 'pending'   THEN '⏳ Waiting'
+    ELSE '❌ ' || status
+  END AS status_label
+FROM orders
+LIMIT 10;
+\`\`\`
+
+The **simple CASE** form (\`CASE column WHEN value\`) is a shorthand when you are comparing one column to fixed values.
+
+---
+
+## Example 3 — Conditional Aggregation (Pivot)
+
+\`CASE WHEN\` inside aggregate functions lets you count/sum only rows that match a condition:
+
+\`\`\`sql
+SELECT
+  department_id,
+  COUNT(*) AS total,
+  SUM(CASE WHEN salary >= 7000 THEN 1 ELSE 0 END) AS high_earners,
+  SUM(CASE WHEN salary < 7000  THEN 1 ELSE 0 END) AS others
+FROM employees
+GROUP BY department_id;
+\`\`\`
+
+---
+
+## Example 4 — CASE in ORDER BY
+
+\`\`\`sql
+-- Show 'pending' orders first, then by date
+SELECT id, status, order_date
+FROM orders
+ORDER BY
+  CASE status WHEN 'pending' THEN 0 ELSE 1 END,
+  order_date;
+\`\`\`
+
+---
+
+## Key Rules
+
+| Rule | Detail |
+|------|--------|
+| Conditions evaluated top-down | First matching \`WHEN\` wins — order matters |
+| Result types must be compatible | All \`THEN\` values should be the same type |
+| ELSE is optional | Omitting it returns NULL when nothing matches |
+| Can be aliased | Always use \`AS alias\` for readability |
+    `,
+    contentAr: `
+## CASE WHEN — المنطق الشرطي في SQL
+
+\`CASE WHEN\` هو مكافئ if/else في SQL. يتيح لك إرجاع قيم مختلفة بناءً على شروط — مباشرةً داخل \`SELECT\` أو \`ORDER BY\` أو \`GROUP BY\`.
+
+---
+
+## الصياغة الأساسية
+
+\`\`\`sql
+CASE
+  WHEN الشرط1 THEN النتيجة1
+  WHEN الشرط2 THEN النتيجة2
+  ...
+  ELSE النتيجة_الافتراضية
+END
+\`\`\`
+
+جملة \`ELSE\` اختيارية. إذا حُذفت ولم يتطابق أي \`WHEN\`، تكون النتيجة \`NULL\`.
+
+---
+
+## مثال 1 — تصنيف الموظفين حسب الراتب
+
+\`\`\`sql
+SELECT
+  name,
+  salary,
+  CASE
+    WHEN salary >= 8000 THEN 'كبير'
+    WHEN salary >= 5000 THEN 'متوسط'
+    ELSE 'مبتدئ'
+  END AS grade
+FROM employees
+ORDER BY salary DESC;
+\`\`\`
+
+---
+
+## مثال 2 — وضع تسمية على حالة الطلب
+
+\`\`\`sql
+SELECT
+  id,
+  total_amount,
+  CASE status
+    WHEN 'delivered' THEN '✅ مُسلَّم'
+    WHEN 'shipped'   THEN '🚚 في الطريق'
+    WHEN 'pending'   THEN '⏳ قيد الانتظار'
+    ELSE '❌ ' || status
+  END AS status_label
+FROM orders
+LIMIT 10;
+\`\`\`
+
+صيغة **CASE البسيطة** (\`CASE عمود WHEN قيمة\`) هي اختصار عند مقارنة عمود واحد بقيم ثابتة.
+
+---
+
+## مثال 3 — التجميع الشرطي (Pivot)
+
+استخدام \`CASE WHEN\` داخل دوال التجميع يتيح عدّ/جمع الصفوف التي تستوفي شرطاً معيناً فقط:
+
+\`\`\`sql
+SELECT
+  department_id,
+  COUNT(*) AS total,
+  SUM(CASE WHEN salary >= 7000 THEN 1 ELSE 0 END) AS high_earners,
+  SUM(CASE WHEN salary < 7000  THEN 1 ELSE 0 END) AS others
+FROM employees
+GROUP BY department_id;
+\`\`\`
+
+---
+
+## مثال 4 — CASE في ORDER BY
+
+\`\`\`sql
+-- أظهر الطلبات المعلّقة أولاً، ثم رتّب حسب التاريخ
+SELECT id, status, order_date
+FROM orders
+ORDER BY
+  CASE status WHEN 'pending' THEN 0 ELSE 1 END,
+  order_date;
+\`\`\`
+
+---
+
+## القواعد الأساسية
+
+| القاعدة | التفاصيل |
+|---------|---------|
+| الشروط تُقيَّم من الأعلى للأسفل | أول \`WHEN\` مطابق يفوز — الترتيب مهم |
+| أنواع النتائج يجب أن تكون متوافقة | جميع قيم \`THEN\` ينبغي أن تكون من نفس النوع |
+| ELSE اختيارية | حذفها يعيد NULL إذا لم يتطابق أي شرط |
+| يمكن إعطاؤها اسماً | استخدم \`AS alias\` دائماً للوضوح |
+    `,
+    example: `SELECT
+  name,
+  salary,
+  CASE
+    WHEN salary >= 8000 THEN 'Senior'
+    WHEN salary >= 5000 THEN 'Mid-level'
+    ELSE 'Junior'
+  END AS grade
+FROM employees
+ORDER BY salary DESC;`,
+    exercises: [
+      {
+        id: 1,
+        question: "Add a column called 'performance' to the employees list: 'Excellent' if salary ≥ 8000, 'Good' if salary ≥ 6000, otherwise 'Average'. Show name, salary, department_id, and performance.",
+        questionAr: "أضف عموداً بـ'performance' لقائمة الموظفين: 'Excellent' إذا كان الراتب ≥ 8000، 'Good' إذا كان ≥ 6000، وإلا 'Average'. أظهر name, salary, department_id, وperformance.",
+        hint: "Use CASE WHEN salary >= 8000 THEN ... WHEN salary >= 6000 THEN ... ELSE ... END AS performance",
+        hintAr: "استخدم CASE WHEN salary >= 8000 THEN ... WHEN salary >= 6000 THEN ... ELSE ... END AS performance",
+        expectedQuery: "SELECT name, salary, department_id, CASE WHEN salary >= 8000 THEN 'Excellent' WHEN salary >= 6000 THEN 'Good' ELSE 'Average' END AS performance FROM employees ORDER BY salary DESC",
+        checkFunction: (result, q = '') =>
+          result.length > 0 &&
+          /CASE/i.test(q) &&
+          /WHEN/i.test(q) &&
+          /performance/i.test(q),
+      },
+      {
+        id: 2,
+        question: "Using conditional aggregation: for each department_id, count how many employees earn above 7000 (as 'high_earners') and how many earn 7000 or below (as 'standard_earners').",
+        questionAr: "باستخدام التجميع الشرطي: لكل department_id، احسب عدد الموظفين الذين يكسبون أكثر من 7000 (كـ 'high_earners') وعدد من يكسبون 7000 أو أقل (كـ 'standard_earners').",
+        hint: "SELECT department_id, SUM(CASE WHEN salary > 7000 THEN 1 ELSE 0 END) AS high_earners, SUM(CASE WHEN salary <= 7000 THEN 1 ELSE 0 END) AS standard_earners FROM employees GROUP BY department_id",
+        hintAr: "SELECT department_id, SUM(CASE WHEN salary > 7000 THEN 1 ELSE 0 END) AS high_earners, SUM(CASE WHEN salary <= 7000 THEN 1 ELSE 0 END) AS standard_earners FROM employees GROUP BY department_id",
+        expectedQuery: "SELECT department_id, SUM(CASE WHEN salary > 7000 THEN 1 ELSE 0 END) AS high_earners, SUM(CASE WHEN salary <= 7000 THEN 1 ELSE 0 END) AS standard_earners FROM employees GROUP BY department_id ORDER BY department_id",
+        checkFunction: (result, q = '') =>
+          result.length > 0 &&
+          /CASE/i.test(q) &&
+          /GROUP\s+BY/i.test(q) &&
+          /SUM/i.test(q),
+      },
+    ],
+  },
+
+  // ════════════════════════════════════════════════════
+  //  LESSON 44 — NULL HANDLING
+  // ════════════════════════════════════════════════════
+  {
+    id: 44,
+    title: 'Handling NULL — COALESCE, NULLIF, IS NULL',
+    titleAr: 'التعامل مع NULL — COALESCE و NULLIF و IS NULL',
+    description: 'Master NULL semantics and the functions that make working with missing data predictable.',
+    descriptionAr: 'أتقن مفهوم NULL والدوال التي تجعل التعامل مع البيانات المفقودة سهلاً ومتوقعاً.',
+    content: `
+## What is NULL?
+
+\`NULL\` means **unknown** or **absent**. It is not zero, not an empty string — it is the absence of any value.
+
+NULL has special behaviour that surprises most beginners:
+
+\`\`\`sql
+SELECT NULL = NULL;   -- returns NULL (not TRUE!)
+SELECT NULL + 5;      -- returns NULL
+SELECT NULL OR TRUE;  -- returns TRUE  (special case)
+SELECT NULL AND FALSE;-- returns FALSE (special case)
+\`\`\`
+
+Any arithmetic or comparison with NULL propagates NULL — except for \`IS NULL\` and \`IS NOT NULL\`.
+
+---
+
+## IS NULL / IS NOT NULL
+
+The only correct way to test for NULL:
+
+\`\`\`sql
+-- Employees without a manager (top-level managers)
+SELECT name FROM employees WHERE manager_id IS NULL;
+
+-- Employees who DO have a manager
+SELECT name FROM employees WHERE manager_id IS NOT NULL;
+\`\`\`
+
+Never write \`WHERE manager_id = NULL\` — it always returns zero rows.
+
+---
+
+## COALESCE — Return First Non-NULL Value
+
+\`COALESCE(a, b, c, ...)\` returns the first argument that is not NULL.
+
+\`\`\`sql
+-- Show email, or phone as fallback, or 'No contact' if both are NULL
+SELECT
+  name,
+  COALESCE(email, phone, 'No contact') AS contact
+FROM employees;
+\`\`\`
+
+\`\`\`sql
+-- Replace NULL manager_id with 0 for reporting
+SELECT name, COALESCE(manager_id, 0) AS manager_id
+FROM employees;
+\`\`\`
+
+---
+
+## NULLIF — Return NULL When Two Values Are Equal
+
+\`NULLIF(a, b)\` returns NULL if \`a = b\`, otherwise returns \`a\`. Useful to avoid division by zero:
+
+\`\`\`sql
+-- Safe division: avoid dividing by zero
+SELECT
+  name,
+  ROUND(salary / NULLIF(department_id, 0), 2) AS ratio
+FROM employees;
+\`\`\`
+
+\`\`\`sql
+-- Treat empty string the same as NULL
+SELECT NULLIF(notes, '') AS notes FROM orders;
+\`\`\`
+
+---
+
+## NULL in Aggregates
+
+Aggregate functions (\`SUM\`, \`AVG\`, \`COUNT\`, \`MAX\`, \`MIN\`) **skip NULLs** automatically — except \`COUNT(*)\` which counts every row.
+
+\`\`\`sql
+SELECT
+  COUNT(*)          AS total_rows,
+  COUNT(manager_id) AS rows_with_manager,  -- skips NULLs
+  COUNT(*) - COUNT(manager_id) AS rows_without_manager
+FROM employees;
+\`\`\`
+
+---
+
+## NULL in JOINs
+
+NULL foreign keys never match any row — even other NULLs:
+
+\`\`\`sql
+-- This will NOT include employees with no department
+SELECT e.name, d.name AS dept
+FROM employees e
+JOIN departments d ON e.department_id = d.id;
+
+-- Use LEFT JOIN to keep them
+SELECT e.name, COALESCE(d.name, 'Unassigned') AS dept
+FROM employees e
+LEFT JOIN departments d ON e.department_id = d.id;
+\`\`\`
+
+---
+
+## Quick Reference
+
+| Function / Operator | Purpose |
+|---------------------|---------|
+| \`IS NULL\` | Test if value is NULL |
+| \`IS NOT NULL\` | Test if value is not NULL |
+| \`COALESCE(a, b)\` | First non-NULL of a, b |
+| \`NULLIF(a, b)\` | NULL if a = b, else a |
+    `,
+    contentAr: `
+## ما هو NULL؟
+
+\`NULL\` يعني **مجهول** أو **غائب**. إنه ليس صفراً ولا سلسلة فارغة — بل هو غياب أي قيمة.
+
+لـNULL سلوك خاص يفاجئ كثيراً من المبتدئين:
+
+\`\`\`sql
+SELECT NULL = NULL;    -- يُعيد NULL (وليس TRUE!)
+SELECT NULL + 5;       -- يُعيد NULL
+SELECT NULL OR TRUE;   -- يُعيد TRUE  (حالة خاصة)
+SELECT NULL AND FALSE; -- يُعيد FALSE (حالة خاصة)
+\`\`\`
+
+أي عملية حسابية أو مقارنة مع NULL تُنتج NULL — باستثناء \`IS NULL\` و\`IS NOT NULL\`.
+
+---
+
+## IS NULL / IS NOT NULL
+
+الطريقة الصحيحة الوحيدة للتحقق من NULL:
+
+\`\`\`sql
+-- الموظفون بلا مدير (المديرون في أعلى التسلسل الهرمي)
+SELECT name FROM employees WHERE manager_id IS NULL;
+
+-- الموظفون الذين لديهم مدير
+SELECT name FROM employees WHERE manager_id IS NOT NULL;
+\`\`\`
+
+لا تكتب أبداً \`WHERE manager_id = NULL\` — فهذا يُعيد دائماً صفراً من الصفوف.
+
+---
+
+## COALESCE — أعِد أول قيمة غير NULL
+
+\`COALESCE(a, b, c, ...)\` تُعيد أول وسيط ليس NULL.
+
+\`\`\`sql
+-- أظهر البريد الإلكتروني، أو الهاتف كبديل، أو 'لا يوجد تواصل' إذا كلاهما NULL
+SELECT
+  name,
+  COALESCE(email, phone, 'No contact') AS contact
+FROM employees;
+\`\`\`
+
+\`\`\`sql
+-- استبدل NULL في manager_id بالصفر للتقارير
+SELECT name, COALESCE(manager_id, 0) AS manager_id
+FROM employees;
+\`\`\`
+
+---
+
+## NULLIF — أعِد NULL عندما تتساوى قيمتان
+
+\`NULLIF(a, b)\` تُعيد NULL إذا كان \`a = b\`، وإلا تُعيد \`a\`. مفيدة لتجنب القسمة على صفر:
+
+\`\`\`sql
+-- قسمة آمنة: تجنّب القسمة على صفر
+SELECT
+  name,
+  ROUND(salary / NULLIF(department_id, 0), 2) AS ratio
+FROM employees;
+\`\`\`
+
+\`\`\`sql
+-- عامل النص الفارغ معاملة NULL
+SELECT NULLIF(notes, '') AS notes FROM orders;
+\`\`\`
+
+---
+
+## NULL في دوال التجميع
+
+دوال التجميع (\`SUM\`، \`AVG\`، \`COUNT\`، \`MAX\`، \`MIN\`) **تتجاهل NULL** تلقائياً — باستثناء \`COUNT(*)\` الذي يحسب كل الصفوف.
+
+\`\`\`sql
+SELECT
+  COUNT(*)          AS total_rows,
+  COUNT(manager_id) AS rows_with_manager,  -- يتجاهل NULL
+  COUNT(*) - COUNT(manager_id) AS rows_without_manager
+FROM employees;
+\`\`\`
+
+---
+
+## NULL في JOINs
+
+المفاتيح الخارجية NULL لا تطابق أي صف — حتى NULL أخرى:
+
+\`\`\`sql
+-- هذا لن يشمل الموظفين بلا قسم
+SELECT e.name, d.name AS dept
+FROM employees e
+JOIN departments d ON e.department_id = d.id;
+
+-- استخدم LEFT JOIN للاحتفاظ بهم
+SELECT e.name, COALESCE(d.name, 'Unassigned') AS dept
+FROM employees e
+LEFT JOIN departments d ON e.department_id = d.id;
+\`\`\`
+
+---
+
+## مرجع سريع
+
+| الدالة / العامل | الغرض |
+|----------------|-------|
+| \`IS NULL\` | اختبار ما إذا كانت القيمة NULL |
+| \`IS NOT NULL\` | اختبار ما إذا كانت القيمة ليست NULL |
+| \`COALESCE(a, b)\` | أول قيمة غير NULL بين a, b |
+| \`NULLIF(a, b)\` | NULL إذا كان a = b، وإلا a |
+    `,
+    example: `-- Employees without a manager (top-level)
+SELECT name, COALESCE(manager_id, 0) AS manager_id
+FROM employees
+WHERE manager_id IS NULL;`,
+    exercises: [
+      {
+        id: 1,
+        question: "List all employees who have no manager (manager_id IS NULL). Show their name and salary.",
+        questionAr: "أدرج جميع الموظفين الذين ليس لديهم مدير (manager_id IS NULL). أظهر اسمهم وراتبهم.",
+        hint: "SELECT name, salary FROM employees WHERE manager_id IS NULL",
+        hintAr: "SELECT name, salary FROM employees WHERE manager_id IS NULL",
+        expectedQuery: "SELECT name, salary FROM employees WHERE manager_id IS NULL",
+        checkFunction: (result, q = '') =>
+          result.length > 0 &&
+          /IS\s+NULL/i.test(q) &&
+          /manager_id/i.test(q),
+      },
+      {
+        id: 2,
+        question: "Use COALESCE to display each employee's name and their manager_id — but show 'No Manager' (as text) wherever manager_id is NULL. Alias the result as 'manager'.",
+        questionAr: "استخدم COALESCE لعرض اسم كل موظف وmanger_id الخاص به — لكن اعرض 'No Manager' (كنص) أينما كان manager_id هو NULL. أسمِّ العمود 'manager'.",
+        hint: "SELECT name, COALESCE(CAST(manager_id AS TEXT), 'No Manager') AS manager FROM employees",
+        hintAr: "SELECT name, COALESCE(CAST(manager_id AS TEXT), 'No Manager') AS manager FROM employees",
+        expectedQuery: "SELECT name, COALESCE(CAST(manager_id AS TEXT), 'No Manager') AS manager FROM employees",
+        checkFunction: (result, q = '') =>
+          result.length > 0 &&
+          /COALESCE/i.test(q) &&
+          /manager/i.test(q),
+      },
+    ],
+  },
 ];
