@@ -214,7 +214,7 @@ export const translations: Record<Lang, Translations> = {
     lightMode: 'Light mode',
     // Module switcher
     moduleCompany: 'Company DB',
-    moduleDvd: 'DVD Rental',
+    moduleDvd: 'DVD Rental DB',
     // DVD sidebar levels
     dvdLevels: [
       'Level 1 — Discovery',
@@ -377,7 +377,7 @@ export const translations: Record<Lang, Translations> = {
     lightMode: 'الوضع الفاتح',
     // Module switcher
     moduleCompany: 'قاعدة بيانات الشركة',
-    moduleDvd: 'قاعدة بيانات DVD',
+    moduleDvd: 'قاعدة بيانات DVD Rental',
     // DVD sidebar levels
     dvdLevels: [
       'المستوى 1 — الاستكشاف',

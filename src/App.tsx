@@ -44,7 +44,7 @@ export default function App() {
   // ── DVD module state ──────────────────────────────────────────
   const [currentModule, setCurrentModule] = useState<Module>(() => {
     const saved = localStorage.getItem('sql-mastery-module');
-    return (saved === 'company' || saved === 'dvd') ? saved : 'company';
+    return (saved === 'company' || saved === 'dvd') ? saved : 'dvd';
   });
   const [currentDvdLessonId, setCurrentDvdLessonId] = useState<number>(() => {
     const saved = localStorage.getItem('sql-mastery-dvd-lesson');
@@ -235,11 +235,13 @@ export default function App() {
         {/* ── Header ── */}
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 flex-shrink-0">
           {/* Overall progress strip */}
-          {currentModule === 'company' && currentView === 'lesson' && (
+          {currentView === 'lesson' && (
             <div className="h-0.5 w-full bg-gray-100 dark:bg-gray-700">
               <div
                 className="h-0.5 progress-shimmer transition-all duration-700"
-                style={{ width: `${completedPct}%` }}
+                style={{ width: currentModule === 'dvd'
+                  ? `${Math.round((completedDvdLessons.length / dvdLessons.length) * 100)}%`
+                  : `${completedPct}%` }}
               />
             </div>
           )}
@@ -260,16 +262,16 @@ export default function App() {
               {/* Module switcher */}
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
-                  onClick={() => setCurrentModule('company')}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentModule === 'company' ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
-                >
-                  <span className="flex items-center gap-1.5">🎓 {t.moduleCompany}</span>
-                </button>
-                <button
                   onClick={() => { setCurrentModule('dvd'); setDvdEverActivated(true); }}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentModule === 'dvd' ? 'bg-white dark:bg-gray-600 text-violet-600 dark:text-violet-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
                 >
                   <span className="flex items-center gap-1.5">🎬 {t.moduleDvd}</span>
+                </button>
+                <button
+                  onClick={() => setCurrentModule('company')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentModule === 'company' ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
+                >
+                  <span className="flex items-center gap-1.5">🎓 {t.moduleCompany}</span>
                 </button>
               </div>
 
@@ -342,6 +344,11 @@ export default function App() {
               {currentView === 'lesson' && currentModule === 'company' && (
                 <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
                   {t.lessonOf(currentIndex + 1, lessons.length)}
+                </span>
+              )}
+              {currentView === 'lesson' && currentModule === 'dvd' && (
+                <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+                  {t.lessonOf(dvdLessons.findIndex(l => l.id === currentDvdLessonId) + 1, dvdLessons.length)}
                 </span>
               )}
 
