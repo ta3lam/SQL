@@ -4,6 +4,7 @@ import { dvdLessons } from '../data/lessons_dvd';
 import { LessonContent } from './LessonContent';
 import { LessonPane, ResizeHandle } from './LessonPane';
 import { DVDRentalSchema } from './DVDRentalSchema';
+import { Playground } from './Playground';
 import { ErrorBoundary } from './ErrorBoundary';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -16,6 +17,7 @@ interface DVDLessonAreaProps {
   isRTL: boolean;
   focusMode: boolean;
   fontSize: number;
+  view: 'lesson' | 'playground';
   /** PERF 1: set to true the first time the user activates the DVD module */
   shouldLoad: boolean;
 }
@@ -40,6 +42,7 @@ export function DVDLessonArea({
   isRTL,
   focusMode,
   fontSize,
+  view,
   shouldLoad,
 }: DVDLessonAreaProps) {
   const { t } = useLanguage();
@@ -109,6 +112,14 @@ export function DVDLessonArea({
             {t.retry}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (view === 'playground') {
+    return (
+      <div className="h-full overflow-y-auto p-4 sm:p-6">
+        <Playground onExecute={executeQuery} onReset={handleReset} />
       </div>
     );
   }
