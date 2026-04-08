@@ -1,5 +1,7 @@
 import { Lesson } from '../types';
 import { dvdLessonsP2 } from './lessons_dvd2';
+import { dvdLessonsP3 } from './lessons_dvd3';
+import { dvdLessonsP4 } from './lessons_dvd4';
 
 const dvdLessonsBase: Lesson[] = [
   {
@@ -2381,4 +2383,4 @@ LIMIT 15;`,
   },
 ];
 
-export const dvdLessons: Lesson[] = [...dvdLessonsBase, ...dvdLessonsP2];
+export const dvdLessons: Lesson[] = [...dvdLessonsBase, ...dvdLessonsP2, ...dvdLessonsP3, ...dvdLessonsP4];
