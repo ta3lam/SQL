@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePlaygroundSQL } from '../hooks/usePlaygroundSQL';
 import { dvdLessons } from '../data/lessons_dvd';
 import { LessonContent } from './LessonContent';
-import { SQLEditor } from './SQLEditor';
+import { LessonPane, ResizeHandle } from './LessonPane';
 import { DVDRentalSchema } from './DVDRentalSchema';
-import { ExercisePanel } from './ExercisePanel';
+import { ErrorBoundary } from './ErrorBoundary';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface DVDLessonAreaProps {
@@ -14,8 +14,20 @@ interface DVDLessonAreaProps {
   onPrev: () => void;
   onNext: () => void;
   isRTL: boolean;
+  focusMode: boolean;
   /** PERF 1: set to true the first time the user activates the DVD module */
   shouldLoad: boolean;
+}
+
+// Defined outside to avoid re-creation on each render
+function NavArrow({ direction, isRTL }: { direction: 'prev' | 'next'; isRTL: boolean }) {
+  const isPrev = direction === 'prev';
+  const d = (isPrev !== isRTL) ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7';
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
+    </svg>
+  );
 }
 
 export function DVDLessonArea({
@@ -25,6 +37,7 @@ export function DVDLessonArea({
   onPrev,
   onNext,
   isRTL,
+  focusMode,
   shouldLoad,
 }: DVDLessonAreaProps) {
   const { t } = useLanguage();
@@ -43,21 +56,25 @@ export function DVDLessonArea({
   const currentLesson = dvdLessons.find(l => l.id === currentLessonId) || dvdLessons[0];
   const currentIndex = dvdLessons.findIndex(l => l.id === currentLessonId);
 
-  const handleReset = useCallback(() => {
-    resetDatabase();
-  }, [resetDatabase]);
+  const handleReset = useCallback(() => resetDatabase(), [resetDatabase]);
 
-  // Arrow icons that flip in RTL
-  const PrevArrow = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
-    </svg>
-  );
-  const NextArrow = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRTL ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
-    </svg>
-  );
+  // Split-pane state (persisted in localStorage)
+  const [leftPct, setLeftPct] = useState<number>(() => {
+    const saved = localStorage.getItem('sql-mastery-dvd-split');
+    const n = saved ? parseFloat(saved) : 58;
+    return (n >= 30 && n <= 70) ? n : 58;
+  });
+  const handleResize = useCallback((pct: number) => {
+    setLeftPct(pct);
+    localStorage.setItem('sql-mastery-dvd-split', String(pct));
+  }, []);
+
+  const leftPaneRef = useRef<HTMLDivElement>(null);
+
+  // Scroll left pane to top on lesson change
+  useEffect(() => {
+    leftPaneRef.current?.scrollTo(0, 0);
+  }, [currentLessonId]);
 
   if (loading) {
     return (
@@ -86,10 +103,7 @@ export function DVDLessonArea({
           </div>
           <p className="text-red-600 dark:text-red-400 text-lg font-medium mb-2">{t.failedToLoad}</p>
           <p className="text-red-500 dark:text-red-400 text-sm mb-4">{error}</p>
-          <button
-            onClick={handleReset}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
+          <button onClick={handleReset} className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
             {t.retry}
           </button>
         </div>
@@ -98,73 +112,76 @@ export function DVDLessonArea({
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Lesson Content */}
-      <LessonContent lesson={currentLesson} />
+    <div className="flex h-full overflow-hidden">
 
-      {/* Try It Example */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {t.tryItOut}
-        </h2>
-        <SQLEditor
-          initialValue={currentLesson.example}
-          onExecute={executeQuery}
-          onReset={handleReset}
-        />
-      </div>
+      {/* LEFT — lesson content (scrollable) */}
+      <div
+        ref={leftPaneRef}
+        className="overflow-y-auto flex-shrink-0 p-4 sm:p-6 transition-all duration-300"
+        style={{ width: focusMode ? '100%' : `${leftPct}%` }}
+      >
+        <div className="max-w-2xl mx-auto space-y-6">
+          <LessonContent lesson={currentLesson} />
 
-      {/* DVD Rental Schema */}
-      <DVDRentalSchema />
+          {/* Navigation */}
+          <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={onPrev}
+              disabled={currentIndex === 0}
+              aria-label={t.previous}
+              className="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
+            >
+              <NavArrow direction="prev" isRTL={isRTL} />
+              {t.previous}
+            </button>
 
-      {/* Exercises */}
-      {currentLesson.exercises.length > 0 && (
-        <ExercisePanel
-          exercises={currentLesson.exercises}
-          onExecute={executeQuery}
-          onComplete={onLessonComplete}
-        />
-      )}
+            <div className="flex items-center gap-1" role="group" aria-label="lesson progress">
+              {dvdLessons.slice(Math.max(0, currentIndex - 2), Math.min(dvdLessons.length, currentIndex + 3)).map((l) => (
+                <div
+                  key={l.id}
+                  className={`rounded-full transition-all ${
+                    l.id === currentLessonId
+                      ? 'bg-violet-500 w-4 h-2'
+                      : completedLessons.includes(l.id)
+                      ? 'bg-emerald-400 w-2 h-2'
+                      : 'bg-gray-300 dark:bg-gray-600 w-2 h-2'
+                  }`}
+                />
+              ))}
+            </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          onClick={onPrev}
-          disabled={currentIndex === 0}
-          className="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
-        >
-          <PrevArrow />
-          {t.previous}
-        </button>
-
-        <div className="flex items-center gap-1">
-          {dvdLessons.slice(Math.max(0, currentIndex - 2), Math.min(dvdLessons.length, currentIndex + 3)).map((l) => (
-            <div
-              key={l.id}
-              className={`rounded-full transition-all ${
-                l.id === currentLessonId
-                  ? 'bg-violet-500 w-4 h-2'
-                  : completedLessons.includes(l.id)
-                  ? 'bg-emerald-400 w-2 h-2'
-                  : 'bg-gray-300 dark:bg-gray-600 w-2 h-2'
-              }`}
-            />
-          ))}
+            <button
+              onClick={onNext}
+              disabled={currentIndex === dvdLessons.length - 1}
+              aria-label={t.next}
+              className="px-5 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
+            >
+              {t.next}
+              <NavArrow direction="next" isRTL={isRTL} />
+            </button>
+          </div>
         </div>
-
-        <button
-          onClick={onNext}
-          disabled={currentIndex === dvdLessons.length - 1}
-          className="px-5 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
-        >
-          {t.next}
-          <NextArrow />
-        </button>
       </div>
+
+      {/* Resize handle */}
+      {!focusMode && <ResizeHandle leftPct={leftPct} onResize={handleResize} isRTL={isRTL} />}
+
+      {/* RIGHT — sticky panel (editor + schema + exercises) */}
+      <div
+        className={`overflow-y-auto p-4 sm:p-5 bg-gray-50 dark:bg-gray-900 border-s border-gray-200 dark:border-gray-700 transition-all duration-300 ${focusMode ? 'w-0 p-0 opacity-0 overflow-hidden' : 'flex-1'}`}
+      >
+        <ErrorBoundary>
+          <LessonPane
+            lesson={currentLesson}
+            isCompleted={completedLessons.includes(currentLessonId)}
+            onExecute={executeQuery}
+            onReset={handleReset}
+            onComplete={onLessonComplete}
+            schemaSlot={<DVDRentalSchema />}
+          />
+        </ErrorBoundary>
+      </div>
+
     </div>
   );
 }

@@ -18,6 +18,7 @@ interface LessonPaneProps {
   onExecute: (q: string) => QueryResult;
   onReset: () => void;
   onComplete: () => void;
+  schemaSlot?: React.ReactNode;
 }
 
 export function LessonPane({
@@ -26,6 +27,7 @@ export function LessonPane({
   onExecute,
   onReset,
   onComplete,
+  schemaSlot,
 }: LessonPaneProps) {
   const { t, lang, isRTL } = useLanguage();
   const [editorOpen, setEditorOpen] = useState(true);
@@ -96,7 +98,7 @@ export function LessonPane({
         </button>
         {schemaOpen && (
           <div className="px-4 pb-4">
-            <DatabaseSchema />
+            {schemaSlot ?? <DatabaseSchema />}
           </div>
         )}
       </div>

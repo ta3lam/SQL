@@ -306,7 +306,7 @@ export default function App() {
 
             <div className="flex items-center gap-2">
               {/* Focus mode toggle */}
-              {currentModule === 'company' && currentView === 'lesson' && (
+              {currentView === 'lesson' && (
                 <button
                   onClick={() => setFocusMode(f => !f)}
                   title={focusMode ? (lang === 'ar' ? 'إظهار اللوحة' : 'Show panel') : (lang === 'ar' ? 'وضع التركيز' : 'Focus mode')}
@@ -421,6 +421,7 @@ export default function App() {
                 onPrev={goToPrevDvdLesson}
                 onNext={goToNextDvdLesson}
                 isRTL={isRTL}
+                focusMode={focusMode}
                 shouldLoad={dvdEverActivated}
               />
             </ErrorBoundary>
