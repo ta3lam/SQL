@@ -65,6 +65,9 @@ export default function App() {
   // PERF 1: DVD SQL only loaded on first visit
   const [dvdEverActivated, setDvdEverActivated] = useState(currentModule === 'dvd');
 
+  // ── Focus mode (hide right panel) ────────────────────────────
+  const [focusMode, setFocusMode] = useState(false);
+
   // ── Dark mode ─────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('sql-mastery-dark');
@@ -97,20 +100,7 @@ export default function App() {
     localStorage.setItem('sql-mastery-split', String(pct));
   }, []);
 
-  // ── Heading refs for TOC scroll ────────────────────────────────
-  const headingRefs = useRef<Record<string, HTMLElement>>({});
   const leftPaneRef = useRef<HTMLDivElement>(null);
-
-  const handleHeadingMount = useCallback((id: string, el: HTMLElement | null) => {
-    if (el) headingRefs.current[id] = el;
-  }, []);
-
-  const handleTocClick = useCallback((id: string) => {
-    const el = headingRefs.current[id] ?? document.getElementById(id);
-    if (el && leftPaneRef.current) {
-      leftPaneRef.current.scrollTo({ top: el.offsetTop - 16, behavior: 'smooth' });
-    }
-  }, []);
 
   // ── Persist state ─────────────────────────────────────────────
   useEffect(() => { localStorage.setItem('sql-mastery-current-lesson', String(currentLessonId)); }, [currentLessonId]);
@@ -224,6 +214,7 @@ export default function App() {
             currentLesson={currentLessonId}
             onSelectLesson={(id) => { setCurrentLessonId(id); setCurrentView('lesson'); if (window.innerWidth < 1024) setSidebarOpen(false); }}
             completedLessons={completedLessons}
+            onResetProgress={() => setCompletedLessons([])}
             module="company"
           />
         ) : (
@@ -232,6 +223,7 @@ export default function App() {
             currentLesson={currentDvdLessonId}
             onSelectLesson={(id) => { setCurrentDvdLessonId(id); setCurrentView('lesson'); if (window.innerWidth < 1024) setSidebarOpen(false); }}
             completedLessons={completedDvdLessons}
+            onResetProgress={() => setCompletedDvdLessons([])}
             module="dvd"
           />
         )}
@@ -311,6 +303,25 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Focus mode toggle */}
+              {currentModule === 'company' && currentView === 'lesson' && (
+                <button
+                  onClick={() => setFocusMode(f => !f)}
+                  title={focusMode ? (lang === 'ar' ? 'إظهار اللوحة' : 'Show panel') : (lang === 'ar' ? 'وضع التركيز' : 'Focus mode')}
+                  className={`p-2 rounded-lg transition-colors ${focusMode ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                >
+                  {focusMode ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                  )}
+                </button>
+              )}
+
               {/* Font size toggle */}
               <div className="hidden sm:flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
@@ -420,14 +431,13 @@ export default function App() {
                 {/* LEFT — lesson content (scrollable) */}
                 <div
                   ref={leftPaneRef}
-                  className="overflow-y-auto flex-shrink-0 p-4 sm:p-6"
-                  style={{ width: `${leftPct}%` }}
+                  className="overflow-y-auto flex-shrink-0 p-4 sm:p-6 transition-all duration-300"
+                  style={{ width: focusMode ? '100%' : `${leftPct}%` }}
                 >
                   <div className="max-w-2xl mx-auto space-y-6">
                     <LessonContent
                       lesson={currentLesson}
                       fontSize={fontSize}
-                      onHeadingMount={handleHeadingMount}
                     />
 
                     {/* Navigation */}
@@ -472,11 +482,11 @@ export default function App() {
                 </div>
 
                 {/* Resize handle */}
-                <ResizeHandle leftPct={leftPct} onResize={handleResize} isRTL={isRTL} />
+                {!focusMode && <ResizeHandle leftPct={leftPct} onResize={handleResize} isRTL={isRTL} />}
 
-                {/* RIGHT — sticky panel (TOC + editor + exercises) */}
+                {/* RIGHT — sticky panel (editor + exercises) */}
                 <div
-                  className="flex-1 overflow-y-auto p-4 sm:p-5 bg-gray-50 dark:bg-gray-900 border-s border-gray-200 dark:border-gray-700"
+                  className={`overflow-y-auto p-4 sm:p-5 bg-gray-50 dark:bg-gray-900 border-s border-gray-200 dark:border-gray-700 transition-all duration-300 ${focusMode ? 'w-0 p-0 opacity-0 overflow-hidden' : 'flex-1'}`}
                 >
                   <LessonPane
                     lesson={currentLesson}
@@ -484,7 +494,6 @@ export default function App() {
                     onExecute={executeQuery}
                     onReset={resetDatabase}
                     onComplete={handleLessonComplete}
-                    onTocClick={handleTocClick}
                   />
                 </div>
 

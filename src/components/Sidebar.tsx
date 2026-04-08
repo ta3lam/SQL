@@ -7,6 +7,7 @@ interface SidebarProps {
   currentLesson: number;
   onSelectLesson: (id: number) => void;
   completedLessons: number[];
+  onResetProgress: () => void;
   module?: 'company' | 'dvd';
 }
 
@@ -22,6 +23,9 @@ const LEVEL_GROUPS = [
   { ids: [30, 31, 32, 33] },
   { ids: [34, 35, 36, 37, 38] },
   { ids: [39, 40, 41, 42, 43, 44] },
+  { ids: [45, 46, 47, 48, 49, 50] },
+  { ids: [51, 52, 53, 54, 55, 56] },
+  { ids: [57, 58, 59, 60] },
 ];
 
 const DVD_LEVEL_GROUPS = [
@@ -32,9 +36,10 @@ const DVD_LEVEL_GROUPS = [
   { ids: [113, 114] },
 ];
 
-export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLessons, module = 'company' }: SidebarProps) {
+export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLessons, onResetProgress, module = 'company' }: SidebarProps) {
   const { t, isRTL, lang } = useLanguage();
   const [search, setSearch] = useState('');
+  const [confirmReset, setConfirmReset] = useState(false);
   const completedCount = completedLessons.length;
   const progressPct = Math.round((completedCount / lessons.length) * 100);
   const activeGroups = module === 'dvd' ? DVD_LEVEL_GROUPS : LEVEL_GROUPS;
@@ -77,6 +82,41 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
             />
           </div>
         </div>
+
+        {/* Reset Progress */}
+        {completedCount > 0 && (
+          <div className="mt-3">
+            {confirmReset ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-red-500 dark:text-red-400 flex-1">
+                  {lang === 'ar' ? 'هل أنت متأكد؟' : 'Are you sure?'}
+                </span>
+                <button
+                  onClick={() => { onResetProgress(); setConfirmReset(false); }}
+                  className="text-xs px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                >
+                  {lang === 'ar' ? 'نعم' : 'Yes'}
+                </button>
+                <button
+                  onClick={() => setConfirmReset(false)}
+                  className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-md transition-colors"
+                >
+                  {lang === 'ar' ? 'لا' : 'No'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmReset(true)}
+                className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors py-1"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {lang === 'ar' ? 'إعادة تعيين التقدم' : 'Reset progress'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Search */}

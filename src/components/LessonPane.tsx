@@ -1,6 +1,6 @@
 /**
  * LessonPane — right-side sticky panel for the split layout.
- * Contains: TOC, "Try it out" editor (collapsible), Schema (collapsible), Exercises, Mark-Complete.
+ * Contains: "Try it out" editor (collapsible), Schema (collapsible), Exercises, Mark-Complete.
  */
 import { useState, useRef, useEffect } from 'react';
 import { Lesson } from '../types';
@@ -11,24 +11,6 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { QueryResult } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
-interface TocEntry { id: string; text: string; level: number }
-
-function parseToc(markdown: string): TocEntry[] {
-  return markdown
-    .split('\n')
-    .filter(l => /^#{2,3}\s/.test(l))
-    .map(l => {
-      const m = l.match(/^(#{2,3})\s+(.+)/);
-      if (!m) return null;
-      const text = m[2].trim();
-      return {
-        id: text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
-        text,
-        level: m[1].length,
-      };
-    })
-    .filter(Boolean) as TocEntry[];
-}
 
 interface LessonPaneProps {
   lesson: Lesson;
@@ -36,8 +18,6 @@ interface LessonPaneProps {
   onExecute: (q: string) => QueryResult;
   onReset: () => void;
   onComplete: () => void;
-  /** call when user clicks a TOC heading — parent scrolls left pane */
-  onTocClick: (id: string) => void;
 }
 
 export function LessonPane({
@@ -46,22 +26,20 @@ export function LessonPane({
   onExecute,
   onReset,
   onComplete,
-  onTocClick,
 }: LessonPaneProps) {
   const { t, lang, isRTL } = useLanguage();
   const [editorOpen, setEditorOpen] = useState(true);
   const [schemaOpen, setSchemaOpen] = useState(false);
+  const [exercisesOpen, setExercisesOpen] = useState(true);
   const [allDone, setAllDone] = useState(false);
 
   // reset panel state when lesson changes
   useEffect(() => {
     setEditorOpen(true);
     setSchemaOpen(false);
+    setExercisesOpen(true);
     setAllDone(false);
   }, [lesson.id]);
-
-  const content = lang === 'ar' && lesson.contentAr ? lesson.contentAr : lesson.content;
-  const toc = parseToc(content);
 
   const handleComplete = () => {
     setAllDone(true);
@@ -70,31 +48,6 @@ export function LessonPane({
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto pb-6">
-
-      {/* TOC */}
-      {toc.length > 1 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-          <div className="px-4 py-2.5 bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h10M4 14h7M4 18h5" />
-            </svg>
-            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              {lang === 'ar' ? 'المحتويات' : 'Contents'}
-            </span>
-          </div>
-          <nav className="px-3 py-2 space-y-0.5">
-            {toc.map(entry => (
-              <button
-                key={entry.id}
-                onClick={() => onTocClick(entry.id)}
-                className={`w-full text-start text-xs py-1 px-2 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 text-gray-600 dark:text-gray-400 transition-colors truncate ${entry.level === 3 ? (isRTL ? 'pr-4' : 'pl-4') : ''}`}
-              >
-                {entry.text}
-              </button>
-            ))}
-          </nav>
-        </div>
-      )}
 
       {/* Try It Out — collapsible */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
@@ -119,7 +72,7 @@ export function LessonPane({
               initialValue={lesson.example}
               onExecute={onExecute}
               onReset={onReset}
-              height="140px"
+              height="260px"
             />
           </div>
         )}
@@ -148,15 +101,38 @@ export function LessonPane({
         )}
       </div>
 
-      {/* Exercises */}
+      {/* Exercises — collapsible */}
       {lesson.exercises.length > 0 && (
-        <ErrorBoundary>
-          <ExercisePanel
-            exercises={lesson.exercises}
-            onExecute={onExecute}
-            onComplete={handleComplete}
-          />
-        </ErrorBoundary>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <button
+            onClick={() => setExercisesOpen(o => !o)}
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-white">
+              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              {lang === 'ar' ? 'التمارين' : 'Exercises'}
+              <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
+                ({lesson.exercises.length})
+              </span>
+            </span>
+            <svg className={`w-4 h-4 text-gray-400 transition-transform ${exercisesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {exercisesOpen && (
+            <div className="border-t border-gray-100 dark:border-gray-700">
+              <ErrorBoundary>
+                <ExercisePanel
+                  exercises={lesson.exercises}
+                  onExecute={onExecute}
+                  onComplete={handleComplete}
+                />
+              </ErrorBoundary>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Mark as Complete — for lessons with no exercises */}

@@ -117,6 +117,9 @@ export const translations: Record<Lang, Translations> = {
       'Level 8 — Subqueries',
       'Level 9 — Advanced',
       'Level 10 — Expert',
+      'Level 11 — Data Functions',
+      'Level 12 — Advanced Analytics',
+      'Level 13 — Master',
     ],
     // SQLEditor
     sqlEditor: 'SQL Editor',
@@ -257,6 +260,9 @@ export const translations: Record<Lang, Translations> = {
       'المستوى 8 — الاستعلامات الفرعية',
       'المستوى 9 — متقدم',
       'المستوى 10 — خبير',
+      'المستوى 11 — دوال البيانات',
+      'المستوى 12 — تحليلات متقدمة',
+      'المستوى 13 — إتقان',
     ],
     // SQLEditor
     sqlEditor: 'محرر SQL',

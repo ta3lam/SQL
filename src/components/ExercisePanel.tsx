@@ -170,7 +170,7 @@ export function ExercisePanel({ exercises, onExecute, onComplete }: ExercisePane
           key={currentExercise}
           initialValue=""
           onExecute={handleExecute}
-          height="120px"
+          height="260px"
         />
 
         {/* Feedback messages */}

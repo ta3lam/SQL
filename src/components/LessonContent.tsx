@@ -1,7 +1,7 @@
 import { Lesson } from '../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ReactNode, useState, useCallback, useId } from 'react';
+import { ReactNode, useState, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql } from '@codemirror/lang-sql';
@@ -11,8 +11,6 @@ interface LessonContentProps {
   lesson: Lesson;
   /** font size step: 0=default(14px), 1=16px, 2=18px */
   fontSize?: number;
-  /** called when a TOC heading is rendered so parent can register its ref */
-  onHeadingMount?: (id: string, el: HTMLElement | null) => void;
 }
 
 /** Read-only CodeMirror block with a copy button */
@@ -69,17 +67,13 @@ function SqlBlock({ code }: { code: string }) {
 
 const FONT_SIZES = ['text-sm', 'text-base', 'text-lg'];
 
-export function LessonContent({ lesson, fontSize = 0, onHeadingMount }: LessonContentProps) {
+export function LessonContent({ lesson, fontSize = 0 }: LessonContentProps) {
   const { lang, isRTL } = useLanguage();
-  const uid = useId();
   const displayTitle = lang === 'ar' && lesson.titleAr ? lesson.titleAr : lesson.title;
   const displayDescription = lang === 'ar' && lesson.descriptionAr ? lesson.descriptionAr : lesson.description;
   const displayContent = lang === 'ar' && lesson.contentAr ? lesson.contentAr : lesson.content;
   const contentDir = lang === 'ar' && lesson.contentAr ? 'rtl' : 'ltr';
   const baseSize = FONT_SIZES[Math.min(fontSize, 2)];
-
-  const headingId = (text: string) =>
-    String(text ?? '').toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
 
   return (
     <div className={`prose prose-base dark:prose-invert max-w-none ${baseSize}`} dir={contentDir}>
@@ -101,31 +95,17 @@ export function LessonContent({ lesson, fontSize = 0, onHeadingMount }: LessonCo
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            h2: ({ children }: { children?: ReactNode }) => {
-              const id = headingId(String(children ?? ''));
-              return (
-                <h2
-                  id={id}
-                  ref={el => onHeadingMount?.(id, el)}
-                  className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-4 flex items-center gap-2 first:mt-0 scroll-mt-4"
-                >
-                  <span className="w-1 h-5 bg-indigo-500 rounded-full flex-shrink-0" />
-                  {children}
-                </h2>
-              );
-            },
-            h3: ({ children }: { children?: ReactNode }) => {
-              const id = headingId(String(children ?? ''));
-              return (
-                <h3
-                  id={id}
-                  ref={el => onHeadingMount?.(id, el)}
-                  className="text-lg font-semibold text-gray-700 dark:text-gray-200 mt-5 mb-2.5 scroll-mt-4"
-                >
-                  {children}
-                </h3>
-              );
-            },
+            h2: ({ children }: { children?: ReactNode }) => (
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-4 flex items-center gap-2 first:mt-0">
+                <span className="w-1 h-5 bg-indigo-500 rounded-full flex-shrink-0" />
+                {children}
+              </h2>
+            ),
+            h3: ({ children }: { children?: ReactNode }) => (
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mt-5 mb-2.5">
+                {children}
+              </h3>
+            ),
             h4: ({ children }: { children?: ReactNode }) => (
               <h4 className="text-base font-semibold text-gray-600 dark:text-gray-300 mt-4 mb-2">
                 {children}
