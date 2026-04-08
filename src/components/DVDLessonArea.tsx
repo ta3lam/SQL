@@ -15,6 +15,7 @@ interface DVDLessonAreaProps {
   onNext: () => void;
   isRTL: boolean;
   focusMode: boolean;
+  fontSize: number;
   /** PERF 1: set to true the first time the user activates the DVD module */
   shouldLoad: boolean;
 }
@@ -38,6 +39,7 @@ export function DVDLessonArea({
   onNext,
   isRTL,
   focusMode,
+  fontSize,
   shouldLoad,
 }: DVDLessonAreaProps) {
   const { t } = useLanguage();
@@ -121,7 +123,7 @@ export function DVDLessonArea({
         style={{ width: focusMode ? '100%' : `${leftPct}%` }}
       >
         <div className="max-w-2xl mx-auto space-y-6">
-          <LessonContent lesson={currentLesson} />
+          <LessonContent lesson={currentLesson} fontSize={fontSize} />
 
           {/* Navigation */}
           <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">

@@ -422,6 +422,7 @@ export default function App() {
                 onNext={goToNextDvdLesson}
                 isRTL={isRTL}
                 focusMode={focusMode}
+                fontSize={fontSize}
                 shouldLoad={dvdEverActivated}
               />
             </ErrorBoundary>
