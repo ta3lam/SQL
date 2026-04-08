@@ -222,6 +222,10 @@ export const translations: Record<Lang, Translations> = {
       'Level 3 — Analytics',
       'Level 4 — Advanced Queries',
       'Level 5 — Expert',
+      'Level 6 — Intermediate Patterns',
+      'Level 7 — Multi-Table Mastery',
+      'Level 8 — Advanced Windows',
+      'Level 9 — Data Functions',
     ],
     // Mark as complete
     markComplete: 'Mark as Complete',
@@ -381,6 +385,10 @@ export const translations: Record<Lang, Translations> = {
       'المستوى 3 — التحليلات',
       'المستوى 4 — استعلامات متقدمة',
       'المستوى 5 — خبير',
+      'المستوى 6 — أنماط وسيطة',
+      'المستوى 7 — إتقان الجداول المتعددة',
+      'المستوى 8 — نوافذ متقدمة',
+      'المستوى 9 — دوال البيانات',
     ],
     // Mark as complete
     markComplete: 'تمييز كمكتمل',

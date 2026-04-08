@@ -1,6 +1,7 @@
 import { Lesson } from '../types';
+import { dvdLessonsP2 } from './lessons_dvd2';
 
-export const dvdLessons: Lesson[] = [
+const dvdLessonsBase: Lesson[] = [
   {
     id: 101,
     title: 'Meet the DVD Rental Database',
@@ -2379,3 +2380,5 @@ LIMIT 15;`,
     ],
   },
 ];
+
+export const dvdLessons: Lesson[] = [...dvdLessonsBase, ...dvdLessonsP2];
