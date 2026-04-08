@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Lesson } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -33,10 +34,19 @@ const DVD_LEVEL_GROUPS = [
 
 export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLessons, module = 'company' }: SidebarProps) {
   const { t, isRTL, lang } = useLanguage();
+  const [search, setSearch] = useState('');
   const completedCount = completedLessons.length;
   const progressPct = Math.round((completedCount / lessons.length) * 100);
   const activeGroups = module === 'dvd' ? DVD_LEVEL_GROUPS : LEVEL_GROUPS;
   const activeLevels = module === 'dvd' ? t.dvdLevels : t.levels;
+
+  const query = search.trim().toLowerCase();
+  const filteredIds = query
+    ? new Set(lessons.filter(l =>
+        l.title.toLowerCase().includes(query) ||
+        (l.titleAr && l.titleAr.includes(search.trim()))
+      ).map(l => l.id))
+    : null;
 
   return (
     <aside className={`w-72 bg-white dark:bg-gray-800 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 h-screen overflow-y-auto sticky top-0 flex flex-col`}>
@@ -69,10 +79,37 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
         </div>
       </div>
 
+      {/* Search */}
+      <div className="px-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="relative">
+          <svg className={`absolute top-2.5 ${isRTL ? 'right-2.5' : 'left-2.5'} w-3.5 h-3.5 text-gray-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={lang === 'ar' ? 'بحث في الدروس...' : 'Search lessons...'}
+            dir="auto"
+            className={`w-full ${isRTL ? 'pr-8 pl-3' : 'pl-8 pr-3'} py-2 text-xs rounded-lg bg-gray-100 dark:bg-gray-700 border border-transparent focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 transition-colors`}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className={`absolute top-2.5 ${isRTL ? 'left-2.5' : 'right-2.5'} text-gray-400 hover:text-gray-600 dark:hover:text-gray-200`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Lesson List with Level Groups */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
         {activeGroups.map((group, groupIndex) => {
-          const groupLessons = lessons.filter(l => group.ids.includes(l.id));
+          const groupLessons = lessons.filter(l => group.ids.includes(l.id) && (!filteredIds || filteredIds.has(l.id)));
           if (groupLessons.length === 0) return null;
 
           const groupCompleted = groupLessons.filter(l => completedLessons.includes(l.id)).length;

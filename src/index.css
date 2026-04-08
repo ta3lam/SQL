@@ -9,3 +9,30 @@ html[lang="ar"],
   font-family: 'IBM Plex Sans Arabic', 'Segoe UI', system-ui, sans-serif;
   line-height: 1.8;
 }
+
+/* ── Celebration banner animation ── */
+@keyframes celebration-pop {
+  0%   { transform: scale(0.7) translateY(12px); opacity: 0; }
+  60%  { transform: scale(1.05) translateY(-4px); opacity: 1; }
+  100% { transform: scale(1) translateY(0);       opacity: 1; }
+}
+.celebration-banner {
+  animation: celebration-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Smooth scroll for TOC links ── */
+html { scroll-behavior: smooth; }
+
+/* ── Resizable pane cursor ── */
+.cursor-col-resize { cursor: col-resize; }
+
+/* ── Progress bar shimmer ── */
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position:  200% center; }
+}
+.progress-shimmer {
+  background: linear-gradient(90deg, #6366f1 0%, #a78bfa 50%, #6366f1 100%);
+  background-size: 200% auto;
+  animation: shimmer 2s linear infinite;
+}

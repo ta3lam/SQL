@@ -1,9 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { LessonContent } from './components/LessonContent';
-import { SQLEditor } from './components/SQLEditor';
-import { ExercisePanel } from './components/ExercisePanel';
-import { DatabaseSchema } from './components/DatabaseSchema';
+import { LessonPane, ResizeHandle } from './components/LessonPane';
 import { Playground } from './components/Playground';
 import { DVDLessonArea } from './components/DVDLessonArea';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -29,7 +27,7 @@ function NavArrow({ direction, isRTL }: { direction: 'prev' | 'next'; isRTL: boo
 export default function App() {
   const { t, isRTL, lang, setLang } = useLanguage();
 
-  // Company module state
+  // ── Company module state ──────────────────────────────────────
   const [currentLessonId, setCurrentLessonId] = useState<number>(() => {
     const saved = localStorage.getItem('sql-mastery-current-lesson');
     const parsed = saved ? parseInt(saved, 10) : NaN;
@@ -43,7 +41,7 @@ export default function App() {
     } catch { return []; }
   });
 
-  // DVD module state
+  // ── DVD module state ──────────────────────────────────────────
   const [currentModule, setCurrentModule] = useState<Module>(() => {
     const saved = localStorage.getItem('sql-mastery-module');
     return (saved === 'company' || saved === 'dvd') ? saved : 'company';
@@ -64,94 +62,106 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('lesson');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // PERF 1: track whether the DVD module was ever activated so the 7.4 MB SQL
-  // is only fetched/parsed on first visit — never on app startup.
+  // PERF 1: DVD SQL only loaded on first visit
   const [dvdEverActivated, setDvdEverActivated] = useState(currentModule === 'dvd');
 
-  // UX: Dark mode toggle — persisted in localStorage, applies `dark` class to <html>
+  // ── Dark mode ─────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('sql-mastery-dark');
     if (saved !== null) return saved === 'true';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
-
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('sql-mastery-dark', String(darkMode));
   }, [darkMode]);
 
-  // Persist company module state
+  // ── Font size (0=14px, 1=16px, 2=18px) ───────────────────────
+  const [fontSize, setFontSize] = useState<number>(() => {
+    const saved = localStorage.getItem('sql-mastery-fontsize');
+    const n = saved ? parseInt(saved, 10) : 0;
+    return (n >= 0 && n <= 2) ? n : 0;
+  });
   useEffect(() => {
-    localStorage.setItem('sql-mastery-current-lesson', String(currentLessonId));
-  }, [currentLessonId]);
+    localStorage.setItem('sql-mastery-fontsize', String(fontSize));
+  }, [fontSize]);
 
-  useEffect(() => {
-    localStorage.setItem('sql-mastery-completed', JSON.stringify(completedLessons));
-  }, [completedLessons]);
+  // ── Split-pane width (left %) ─────────────────────────────────
+  const [leftPct, setLeftPct] = useState<number>(() => {
+    const saved = localStorage.getItem('sql-mastery-split');
+    const n = saved ? parseFloat(saved) : 58;
+    return (n >= 30 && n <= 70) ? n : 58;
+  });
+  const handleResize = useCallback((pct: number) => {
+    setLeftPct(pct);
+    localStorage.setItem('sql-mastery-split', String(pct));
+  }, []);
 
-  // Persist module selection and DVD state
-  useEffect(() => {
-    localStorage.setItem('sql-mastery-module', currentModule);
-  }, [currentModule]);
+  // ── Heading refs for TOC scroll ────────────────────────────────
+  const headingRefs = useRef<Record<string, HTMLElement>>({});
+  const leftPaneRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    localStorage.setItem('sql-mastery-dvd-lesson', String(currentDvdLessonId));
-  }, [currentDvdLessonId]);
+  const handleHeadingMount = useCallback((id: string, el: HTMLElement | null) => {
+    if (el) headingRefs.current[id] = el;
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('sql-mastery-dvd-completed', JSON.stringify(completedDvdLessons));
-  }, [completedDvdLessons]);
+  const handleTocClick = useCallback((id: string) => {
+    const el = headingRefs.current[id] ?? document.getElementById(id);
+    if (el && leftPaneRef.current) {
+      leftPaneRef.current.scrollTo({ top: el.offsetTop - 16, behavior: 'smooth' });
+    }
+  }, []);
+
+  // ── Persist state ─────────────────────────────────────────────
+  useEffect(() => { localStorage.setItem('sql-mastery-current-lesson', String(currentLessonId)); }, [currentLessonId]);
+  useEffect(() => { localStorage.setItem('sql-mastery-completed', JSON.stringify(completedLessons)); }, [completedLessons]);
+  useEffect(() => { localStorage.setItem('sql-mastery-module', currentModule); }, [currentModule]);
+  useEffect(() => { localStorage.setItem('sql-mastery-dvd-lesson', String(currentDvdLessonId)); }, [currentDvdLessonId]);
+  useEffect(() => { localStorage.setItem('sql-mastery-dvd-completed', JSON.stringify(completedDvdLessons)); }, [completedDvdLessons]);
 
   const { loading, error, executeQuery, resetDatabase } = useSQL();
-
   const currentLesson = lessons.find(l => l.id === currentLessonId) || lessons[0];
 
-  // Company module handlers
+  // ── Company handlers ──────────────────────────────────────────
   const handleLessonComplete = useCallback(() => {
-    setCompletedLessons(prev =>
-      prev.includes(currentLessonId) ? prev : [...prev, currentLessonId]
-    );
+    setCompletedLessons(prev => prev.includes(currentLessonId) ? prev : [...prev, currentLessonId]);
   }, [currentLessonId]);
 
   const goToNextLesson = useCallback(() => {
-    const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
-    if (currentIndex < lessons.length - 1) {
-      setCurrentLessonId(lessons[currentIndex + 1].id);
-      window.scrollTo(0, 0);
-    }
+    const idx = lessons.findIndex(l => l.id === currentLessonId);
+    if (idx < lessons.length - 1) { setCurrentLessonId(lessons[idx + 1].id); leftPaneRef.current?.scrollTo(0, 0); }
   }, [currentLessonId]);
 
   const goToPrevLesson = useCallback(() => {
-    const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
-    if (currentIndex > 0) {
-      setCurrentLessonId(lessons[currentIndex - 1].id);
-      window.scrollTo(0, 0);
-    }
+    const idx = lessons.findIndex(l => l.id === currentLessonId);
+    if (idx > 0) { setCurrentLessonId(lessons[idx - 1].id); leftPaneRef.current?.scrollTo(0, 0); }
   }, [currentLessonId]);
 
-  // DVD module handlers
+  // ── DVD handlers ──────────────────────────────────────────────
   const handleDvdLessonComplete = useCallback(() => {
-    setCompletedDvdLessons(prev =>
-      prev.includes(currentDvdLessonId) ? prev : [...prev, currentDvdLessonId]
-    );
+    setCompletedDvdLessons(prev => prev.includes(currentDvdLessonId) ? prev : [...prev, currentDvdLessonId]);
   }, [currentDvdLessonId]);
 
   const goToNextDvdLesson = useCallback(() => {
-    const currentIndex = dvdLessons.findIndex(l => l.id === currentDvdLessonId);
-    if (currentIndex < dvdLessons.length - 1) {
-      setCurrentDvdLessonId(dvdLessons[currentIndex + 1].id);
-      window.scrollTo(0, 0);
-    }
+    const idx = dvdLessons.findIndex(l => l.id === currentDvdLessonId);
+    if (idx < dvdLessons.length - 1) setCurrentDvdLessonId(dvdLessons[idx + 1].id);
   }, [currentDvdLessonId]);
 
   const goToPrevDvdLesson = useCallback(() => {
-    const currentIndex = dvdLessons.findIndex(l => l.id === currentDvdLessonId);
-    if (currentIndex > 0) {
-      setCurrentDvdLessonId(dvdLessons[currentIndex - 1].id);
-      window.scrollTo(0, 0);
-    }
+    const idx = dvdLessons.findIndex(l => l.id === currentDvdLessonId);
+    if (idx > 0) setCurrentDvdLessonId(dvdLessons[idx - 1].id);
   }, [currentDvdLessonId]);
 
+  // ── Breadcrumb helpers ────────────────────────────────────────
+  const LEVEL_RANGES = [
+    [1,3],[4,7],[8,11],[12,14],[15,17],[18,20],[21,25],[26,29],[30,33],[34,38],[39,44]
+  ];
+  const getLevelLabel = (id: number) => {
+    const idx = LEVEL_RANGES.findIndex(([lo, hi]) => id >= lo && id <= hi);
+    return idx >= 0 ? t.levels[idx] : '';
+  };
+
+  // ── Loading / Error screens ───────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -179,10 +189,7 @@ export default function App() {
           </div>
           <p className="text-red-600 dark:text-red-400 text-lg font-medium mb-2">{t.failedToLoad}</p>
           <p className="text-red-500 dark:text-red-400 text-sm mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
+          <button onClick={() => window.location.reload()} className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
             {t.retry}
           </button>
         </div>
@@ -191,28 +198,23 @@ export default function App() {
   }
 
   const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
-
+  const completedPct = Math.round((completedLessons.length / lessons.length) * 100);
+  const levelLabel = getLevelLabel(currentLessonId);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" dir={isRTL ? 'rtl' : 'ltr'}>
 
-      {/* Mobile overlay backdrop — closes sidebar on tap outside */}
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
       )}
 
-      {/* Sidebar — fixed drawer on mobile, static on desktop */}
+      {/* Sidebar */}
       <div className={`
         fixed lg:static inset-y-0 z-30 flex-shrink-0
         ${isRTL ? 'right-0' : 'left-0'}
         transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen
-          ? 'translate-x-0'
-          : isRTL ? 'translate-x-full' : '-translate-x-full'}
+        ${sidebarOpen ? 'translate-x-0' : isRTL ? 'translate-x-full' : '-translate-x-full'}
         lg:translate-x-0
         ${!sidebarOpen ? 'lg:hidden' : ''}
       `}>
@@ -220,11 +222,7 @@ export default function App() {
           <Sidebar
             lessons={lessons}
             currentLesson={currentLessonId}
-            onSelectLesson={(id) => {
-              setCurrentLessonId(id);
-              setCurrentView('lesson');
-              if (window.innerWidth < 1024) setSidebarOpen(false);
-            }}
+            onSelectLesson={(id) => { setCurrentLessonId(id); setCurrentView('lesson'); if (window.innerWidth < 1024) setSidebarOpen(false); }}
             completedLessons={completedLessons}
             module="company"
           />
@@ -232,73 +230,63 @@ export default function App() {
           <Sidebar
             lessons={dvdLessons}
             currentLesson={currentDvdLessonId}
-            onSelectLesson={(id) => {
-              setCurrentDvdLessonId(id);
-              setCurrentView('lesson');
-              if (window.innerWidth < 1024) setSidebarOpen(false);
-            }}
+            onSelectLesson={(id) => { setCurrentDvdLessonId(id); setCurrentView('lesson'); if (window.innerWidth < 1024) setSidebarOpen(false); }}
             completedLessons={completedDvdLessons}
             module="dvd"
           />
         )}
       </div>
 
-      {/* Main Content */}
-      <main id="main-content" className="flex-1 overflow-y-auto min-w-0" tabIndex={-1}>
-        {/* Header */}
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+      {/* Main */}
+      <main id="main-content" className="flex-1 overflow-hidden min-w-0 flex flex-col" tabIndex={-1}>
+
+        {/* ── Header ── */}
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 flex-shrink-0">
+          {/* Overall progress strip */}
+          {currentModule === 'company' && currentView === 'lesson' && (
+            <div className="h-0.5 w-full bg-gray-100 dark:bg-gray-700">
+              <div
+                className="h-0.5 progress-shimmer transition-all duration-700"
+                style={{ width: `${completedPct}%` }}
+              />
+            </div>
+          )}
+
           <div className="px-4 sm:px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* Sidebar toggle */}
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title={t.toggleSidebar}
-                aria-label={t.toggleSidebar}
-                aria-expanded={sidebarOpen}
+                title={t.toggleSidebar} aria-label={t.toggleSidebar} aria-expanded={sidebarOpen}
               >
                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
 
-              {/* Module Switcher */}
+              {/* Module switcher */}
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
                   onClick={() => setCurrentModule('company')}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentModule === 'company'
-                      ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                  }`}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentModule === 'company' ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    🎓 {t.moduleCompany}
-                  </span>
+                  <span className="flex items-center gap-1.5">🎓 {t.moduleCompany}</span>
                 </button>
                 <button
                   onClick={() => { setCurrentModule('dvd'); setDvdEverActivated(true); }}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentModule === 'dvd'
-                      ? 'bg-white dark:bg-gray-600 text-violet-600 dark:text-violet-400 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                  }`}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentModule === 'dvd' ? 'bg-white dark:bg-gray-600 text-violet-600 dark:text-violet-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    🎬 {t.moduleDvd}
-                  </span>
+                  <span className="flex items-center gap-1.5">🎬 {t.moduleDvd}</span>
                 </button>
               </div>
 
-              {/* View Switcher — only show for company module (DVD has no playground for now) */}
+              {/* View switcher — company only */}
               {currentModule === 'company' && (
                 <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                   <button
                     onClick={() => setCurrentView('lesson')}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      currentView === 'lesson'
-                        ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                    }`}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentView === 'lesson' ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
                   >
                     <span className="flex items-center gap-1.5">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,11 +297,7 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => setCurrentView('playground')}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      currentView === 'playground'
-                        ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                    }`}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentView === 'playground' ? 'bg-white dark:bg-gray-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'}`}
                   >
                     <span className="flex items-center gap-1.5">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,11 +311,30 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Font size toggle */}
+              <div className="hidden sm:flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                <button
+                  onClick={() => setFontSize(f => Math.max(0, f - 1))}
+                  disabled={fontSize === 0}
+                  title="Decrease font size"
+                  className="px-2 py-1 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded"
+                >A-</button>
+                <button
+                  onClick={() => setFontSize(f => Math.min(2, f + 1))}
+                  disabled={fontSize === 2}
+                  title="Increase font size"
+                  className="px-2 py-1 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded"
+                >A+</button>
+              </div>
+
+              {/* Lesson counter */}
               {currentView === 'lesson' && currentModule === 'company' && (
                 <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
                   {t.lessonOf(currentIndex + 1, lessons.length)}
                 </span>
               )}
+
+              {/* Reset DB */}
               {currentModule === 'company' && (
                 <button
                   onClick={resetDatabase}
@@ -345,12 +348,11 @@ export default function App() {
                 </button>
               )}
 
-              {/* Dark Mode Toggle */}
+              {/* Dark mode */}
               <button
                 onClick={() => setDarkMode(d => !d)}
                 className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title={darkMode ? t.lightMode : t.darkMode}
-                aria-label={darkMode ? t.lightMode : t.darkMode}
+                title={darkMode ? t.lightMode : t.darkMode} aria-label={darkMode ? t.lightMode : t.darkMode}
               >
                 {darkMode ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,22 +365,36 @@ export default function App() {
                 )}
               </button>
 
-              {/* Language Switcher */}
+              {/* Language switcher */}
               <button
                 onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
                 className="px-3 py-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors border border-indigo-200 dark:border-indigo-700"
-                title={t.switchLang}
               >
                 {t.switchLang}
               </button>
             </div>
           </div>
+
+          {/* Breadcrumb — lesson view only */}
+          {currentModule === 'company' && currentView === 'lesson' && levelLabel && (
+            <div className="px-4 sm:px-6 pb-2 flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+              <span>{levelLabel}</span>
+              <span>›</span>
+              <span className="text-gray-600 dark:text-gray-300 font-medium truncate">
+                {lang === 'ar' && currentLesson.titleAr ? currentLesson.titleAr : currentLesson.title}
+              </span>
+              <span className="ms-auto hidden sm:flex items-center gap-1 text-indigo-500 dark:text-indigo-400 font-medium">
+                {completedPct}%
+              </span>
+            </div>
+          )}
         </header>
 
-        {/* Content */}
-        <div className="p-4 sm:p-6">
-          {/* FIX BUG 8: DVDLessonArea stays mounted (hidden) to avoid re-initializing 7.4MB DB on every module switch */}
-          <div className={currentModule === 'dvd' ? 'block' : 'hidden'}>
+        {/* ── Content ── */}
+        <div className="flex-1 overflow-hidden">
+
+          {/* DVD module — stays mounted to avoid re-init */}
+          <div className={`h-full ${currentModule === 'dvd' ? 'block' : 'hidden'}`}>
             <ErrorBoundary>
               <DVDLessonArea
                 currentLessonId={currentDvdLessonId}
@@ -391,109 +407,90 @@ export default function App() {
               />
             </ErrorBoundary>
           </div>
-          {currentModule === 'company' && (currentView === 'playground' ? (
-            <Playground onExecute={executeQuery} onReset={resetDatabase} />
-          ) : (
-            <div className="max-w-5xl mx-auto space-y-6">
-              {/* Lesson Content */}
-              <LessonContent lesson={currentLesson} />
 
-              {/* Try It Example */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-                <h2 className="text-base font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {t.tryItOut}
-                </h2>
-                <SQLEditor
-                  initialValue={currentLesson.example}
-                  onExecute={executeQuery}
-                  onReset={resetDatabase}
-                />
+          {currentModule === 'company' && (
+            currentView === 'playground' ? (
+              <div className="h-full overflow-y-auto p-4 sm:p-6">
+                <Playground onExecute={executeQuery} onReset={resetDatabase} />
               </div>
+            ) : (
+              /* ── Split-pane lesson view ── */
+              <div className="flex h-full overflow-hidden">
 
-              {/* Database Schema */}
-              <DatabaseSchema />
-
-              {/* Exercises */}
-              {currentLesson.exercises.length > 0 && (
-                <ErrorBoundary>
-                  <ExercisePanel
-                    exercises={currentLesson.exercises}
-                    onExecute={executeQuery}
-                    onComplete={handleLessonComplete}
-                  />
-                </ErrorBoundary>
-              )}
-
-              {/* Mark as Complete — shown for lessons with no exercises */}
-              {currentLesson.exercises.length === 0 && (
-                <div className="flex justify-center">
-                  {completedLessons.includes(currentLessonId) ? (
-                    <div className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-200 dark:border-emerald-800 text-sm font-medium">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {t.lessonCompleted}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleLessonComplete}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 shadow-sm transition-all text-sm font-medium"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {t.markComplete}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Navigation */}
-              <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={goToPrevLesson}
-                  disabled={currentIndex === 0}
-                  aria-label={t.previous}
-                  className="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
+                {/* LEFT — lesson content (scrollable) */}
+                <div
+                  ref={leftPaneRef}
+                  className="overflow-y-auto flex-shrink-0 p-4 sm:p-6"
+                  style={{ width: `${leftPct}%` }}
                 >
-                  <NavArrow direction="prev" isRTL={isRTL} />
-                  {t.previous}
-                </button>
-
-                <div className="flex items-center gap-1" role="group" aria-label="lesson progress">
-                  {lessons.slice(Math.max(0, currentIndex - 2), Math.min(lessons.length, currentIndex + 3)).map((l) => (
-                    <button
-                      key={l.id}
-                      onClick={() => setCurrentLessonId(l.id)}
-                      aria-label={`Lesson ${l.id}${l.id === currentLessonId ? ' (current)' : completedLessons.includes(l.id) ? ' (completed)' : ''}`}
-                      aria-current={l.id === currentLessonId ? 'true' : undefined}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        l.id === currentLessonId
-                          ? 'bg-indigo-500 w-4'
-                          : completedLessons.includes(l.id)
-                          ? 'bg-emerald-400'
-                          : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
+                  <div className="max-w-2xl mx-auto space-y-6">
+                    <LessonContent
+                      lesson={currentLesson}
+                      fontSize={fontSize}
+                      onHeadingMount={handleHeadingMount}
                     />
-                  ))}
+
+                    {/* Navigation */}
+                    <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={goToPrevLesson}
+                        disabled={currentIndex === 0}
+                        aria-label={t.previous}
+                        className="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
+                      >
+                        <NavArrow direction="prev" isRTL={isRTL} />
+                        {t.previous}
+                      </button>
+
+                      <div className="flex items-center gap-1" role="group" aria-label="lesson progress">
+                        {lessons.slice(Math.max(0, currentIndex - 2), Math.min(lessons.length, currentIndex + 3)).map((l) => (
+                          <button
+                            key={l.id}
+                            onClick={() => setCurrentLessonId(l.id)}
+                            aria-label={`Lesson ${l.id}`}
+                            aria-current={l.id === currentLessonId ? 'true' : undefined}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              l.id === currentLessonId ? 'bg-indigo-500 w-4'
+                              : completedLessons.includes(l.id) ? 'bg-emerald-400'
+                              : 'bg-gray-300 dark:bg-gray-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={goToNextLesson}
+                        disabled={currentIndex === lessons.length - 1}
+                        aria-label={t.next}
+                        className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
+                      >
+                        {t.next}
+                        <NavArrow direction="next" isRTL={isRTL} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <button
-                  onClick={goToNextLesson}
-                  disabled={currentIndex === lessons.length - 1}
-                  aria-label={t.next}
-                  className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
+                {/* Resize handle */}
+                <ResizeHandle leftPct={leftPct} onResize={handleResize} isRTL={isRTL} />
+
+                {/* RIGHT — sticky panel (TOC + editor + exercises) */}
+                <div
+                  className="flex-1 overflow-y-auto p-4 sm:p-5 bg-gray-50 dark:bg-gray-900 border-s border-gray-200 dark:border-gray-700"
                 >
-                  {t.next}
-                  <NavArrow direction="next" isRTL={isRTL} />
-                </button>
+                  <LessonPane
+                    lesson={currentLesson}
+                    isCompleted={completedLessons.includes(currentLessonId)}
+                    onExecute={executeQuery}
+                    onReset={resetDatabase}
+                    onComplete={handleLessonComplete}
+                    onTocClick={handleTocClick}
+                  />
+                </div>
+
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       </main>
     </div>

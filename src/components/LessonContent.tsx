@@ -1,22 +1,88 @@
 import { Lesson } from '../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ReactNode } from 'react';
+import { ReactNode, useState, useCallback, useId } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import CodeMirror from '@uiw/react-codemirror';
+import { sql } from '@codemirror/lang-sql';
+import { EditorView } from '@codemirror/view';
 
 interface LessonContentProps {
   lesson: Lesson;
+  /** font size step: 0=default(14px), 1=16px, 2=18px */
+  fontSize?: number;
+  /** called when a TOC heading is rendered so parent can register its ref */
+  onHeadingMount?: (id: string, el: HTMLElement | null) => void;
 }
 
-export function LessonContent({ lesson }: LessonContentProps) {
+/** Read-only CodeMirror block with a copy button */
+function SqlBlock({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const { lang } = useLanguage();
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(code.trim()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [code]);
+
+  return (
+    <div className="my-4 rounded-lg overflow-hidden border border-gray-700 shadow-sm relative group" dir="ltr">
+      {/* Copy button */}
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 end-2 z-10 px-2 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-colors opacity-0 group-hover:opacity-100 flex items-center gap-1"
+        title={lang === 'ar' ? 'نسخ' : 'Copy'}
+      >
+        {copied ? (
+          <>
+            <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {lang === 'ar' ? 'تم النسخ' : 'Copied!'}
+          </>
+        ) : (
+          <>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            {lang === 'ar' ? 'نسخ' : 'Copy'}
+          </>
+        )}
+      </button>
+      <CodeMirror
+        value={code.trim()}
+        extensions={[
+          sql(),
+          EditorView.editable.of(false),
+          EditorView.lineWrapping,
+        ]}
+        basicSetup={{ lineNumbers: true, foldGutter: false, highlightActiveLine: false, highlightSelectionMatches: false }}
+        theme="dark"
+        className="text-xs"
+        dir="ltr"
+      />
+    </div>
+  );
+}
+
+const FONT_SIZES = ['text-sm', 'text-base', 'text-lg'];
+
+export function LessonContent({ lesson, fontSize = 0, onHeadingMount }: LessonContentProps) {
   const { lang, isRTL } = useLanguage();
+  const uid = useId();
   const displayTitle = lang === 'ar' && lesson.titleAr ? lesson.titleAr : lesson.title;
   const displayDescription = lang === 'ar' && lesson.descriptionAr ? lesson.descriptionAr : lesson.description;
   const displayContent = lang === 'ar' && lesson.contentAr ? lesson.contentAr : lesson.content;
   const contentDir = lang === 'ar' && lesson.contentAr ? 'rtl' : 'ltr';
+  const baseSize = FONT_SIZES[Math.min(fontSize, 2)];
+
+  const headingId = (text: string) =>
+    String(text ?? '').toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
 
   return (
-    <div className="prose prose-base dark:prose-invert max-w-none" dir={contentDir}>
+    <div className={`prose prose-base dark:prose-invert max-w-none ${baseSize}`} dir={contentDir}>
       {/* Lesson header */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl p-6 mb-0 shadow-md">
         <div className="flex items-start justify-between gap-4">
@@ -35,35 +101,45 @@ export function LessonContent({ lesson }: LessonContentProps) {
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            h2: ({ children }: { children?: ReactNode }) => (
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-4 flex items-center gap-2 first:mt-0">
-                <span className="w-1 h-5 bg-indigo-500 rounded-full flex-shrink-0" />
-                {children}
-              </h2>
-            ),
-            h3: ({ children }: { children?: ReactNode }) => (
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mt-5 mb-2.5">
-                {children}
-              </h3>
-            ),
+            h2: ({ children }: { children?: ReactNode }) => {
+              const id = headingId(String(children ?? ''));
+              return (
+                <h2
+                  id={id}
+                  ref={el => onHeadingMount?.(id, el)}
+                  className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-4 flex items-center gap-2 first:mt-0 scroll-mt-4"
+                >
+                  <span className="w-1 h-5 bg-indigo-500 rounded-full flex-shrink-0" />
+                  {children}
+                </h2>
+              );
+            },
+            h3: ({ children }: { children?: ReactNode }) => {
+              const id = headingId(String(children ?? ''));
+              return (
+                <h3
+                  id={id}
+                  ref={el => onHeadingMount?.(id, el)}
+                  className="text-lg font-semibold text-gray-700 dark:text-gray-200 mt-5 mb-2.5 scroll-mt-4"
+                >
+                  {children}
+                </h3>
+              );
+            },
             h4: ({ children }: { children?: ReactNode }) => (
               <h4 className="text-base font-semibold text-gray-600 dark:text-gray-300 mt-4 mb-2">
                 {children}
               </h4>
             ),
             p: ({ children }: { children?: ReactNode }) => (
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-3 text-sm">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-3">
                 {children}
               </p>
             ),
             code: ({ className, children }: { className?: string; children?: ReactNode }) => {
               const isBlock = className?.includes('language-');
               if (isBlock) {
-                return (
-                  <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto text-xs font-mono my-4 leading-relaxed" dir="ltr">
-                    <code>{children}</code>
-                  </pre>
-                );
+                return <SqlBlock code={String(children ?? '')} />;
               }
               return (
                 <code className="bg-gray-100 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded text-xs font-mono" dir="ltr">
@@ -83,7 +159,7 @@ export function LessonContent({ lesson }: LessonContentProps) {
               </ol>
             ),
             li: ({ children }: { children?: ReactNode }) => (
-              <li className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{children}</li>
+              <li className="text-gray-600 dark:text-gray-300 leading-relaxed">{children}</li>
             ),
             table: ({ children }: { children?: ReactNode }) => (
               <div className="overflow-x-auto my-4 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -117,7 +193,7 @@ export function LessonContent({ lesson }: LessonContentProps) {
               <strong className="font-semibold text-gray-800 dark:text-gray-100">{children}</strong>
             ),
             blockquote: ({ children }: { children?: ReactNode }) => (
-              <blockquote className="border-s-4 border-indigo-400 ps-4 my-3 bg-indigo-50 dark:bg-indigo-900/20 py-2 pe-3 rounded-e-lg text-sm text-indigo-800 dark:text-indigo-200">
+              <blockquote className="border-s-4 border-indigo-400 ps-4 my-3 bg-indigo-50 dark:bg-indigo-900/20 py-2 pe-3 rounded-e-lg text-indigo-800 dark:text-indigo-200">
                 {children}
               </blockquote>
             ),
