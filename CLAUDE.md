@@ -38,7 +38,7 @@ Two SQL hooks manage separate database instances:
 
 Two independent modules share the same UI shell but use separate SQL instances:
 - **Company module**: 60 lessons across 5 parts (`lessons_part1–5.ts`) + playground with Company DB schema
-- **DVD module**: 14 lessons (`lessons_dvd.ts`) using the 7.4 MB DVD Rental DB (PostgreSQL Sakila dataset)
+- **DVD module**: 60 lessons (IDs 101–160) split across `lessons_dvd.ts` + `lessons_dvd2–4.ts`, using the 7.4 MB DVD Rental DB (PostgreSQL Sakila dataset). `lessons_dvd.ts` is the entry point that imports and re-exports all parts as `dvdLessons`.
 
 **DVD lazy-loading**: The DVD SQL (`dvdRental.ts`) is only imported and initialized when the user first activates the DVD module — never on startup. This keeps the initial bundle at ~2.3 MB instead of ~10 MB.
 
@@ -47,6 +47,8 @@ Two independent modules share the same UI shell but use separate SQL instances:
 **`tRef` pattern** (`useSQL.ts`): Stores language in a ref to read inside the SQL init callback without adding it to the dependency array, preventing expensive WASM re-initialization on language change.
 
 **`\0` delimiter for sample queries**: Sample queries are injected with a null character appended so clicking the same query twice still triggers a state update.
+
+**Cursor-aware query execution** (`SQLEditor.tsx`): Clicking Run (or Ctrl+Enter) executes only the statement the cursor is positioned in, not all statements. If text is selected, only the selection runs. Uses a `ReactCodeMirrorRef` to read `view.state.selection.main` at execution time. The `getStatementAtCursor` helper splits on `;` and matches cursor offset to statement end positions.
 
 **`NavArrow` component** defined outside `App` to avoid re-creation on every render (prevents remount).
 
@@ -68,7 +70,7 @@ All UI strings live in `src/i18n/translations.ts` as a `Record<'en'|'ar', Transl
 
 ### Sidebar Level Groups
 
-`Sidebar.tsx` has two hardcoded `LEVEL_GROUPS` arrays (`LEVEL_GROUPS` for Company, `DVD_LEVEL_GROUPS` for DVD) that map lesson IDs to sidebar sections. When adding new lessons, you must add their IDs to the appropriate group array **and** add the corresponding label to `t.levels` (or `t.dvdLevels`) in both EN and AR in `translations.ts`. The Company module currently has 13 levels (IDs 1–60); DVD has 5 levels (IDs 101–114).
+`Sidebar.tsx` has two hardcoded `LEVEL_GROUPS` arrays (`LEVEL_GROUPS` for Company, `DVD_LEVEL_GROUPS` for DVD) that map lesson IDs to sidebar sections. When adding new lessons, you must add their IDs to the appropriate group array **and** add the corresponding label to `t.levels` (or `t.dvdLevels`) in both EN and AR in `translations.ts`. The Company module currently has 13 levels (IDs 1–60); DVD has 17 levels (IDs 101–160).
 
 ### Deployment
 
