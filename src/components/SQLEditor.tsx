@@ -1,9 +1,27 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 // BUG 12: sql.js is fully synchronous — no fake setTimeout needed
-import CodeMirror from '@uiw/react-codemirror';
+import CodeMirror, { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { sql } from '@codemirror/lang-sql';
 import { QueryResult } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+
+/** Returns the single SQL statement that contains `cursorPos`, or the full query if only one. */
+function getStatementAtCursor(query: string, cursorPos: number): string {
+  const stmts: { text: string; end: number }[] = [];
+  let start = 0;
+  for (let i = 0; i <= query.length; i++) {
+    if (i === query.length || query[i] === ';') {
+      const text = query.slice(start, i).trim();
+      if (text) stmts.push({ text, end: i });
+      start = i + 1;
+    }
+  }
+  if (stmts.length <= 1) return query.trim();
+  for (const stmt of stmts) {
+    if (cursorPos <= stmt.end) return stmt.text;
+  }
+  return stmts[stmts.length - 1].text;
+}
 
 interface SQLEditorProps {
   initialValue?: string;
@@ -18,6 +36,7 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
   const [query, setQuery] = useState(initialValue);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const editorRef = useRef<ReactCodeMirrorRef>(null);
 
   // When a sample query is injected from outside, update editor and auto-run it.
   // The injectedQuery includes a \0-delimited suffix to allow re-clicking the same query.
@@ -34,8 +53,20 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
 
   const handleExecute = useCallback(() => {
     if (!query.trim()) return;
-    // BUG 12: sql.js is synchronous — no setTimeout needed
-    const res = onExecute(query);
+    const view = editorRef.current?.view;
+    let queryToRun = query;
+    if (view) {
+      const { from, to, head } = view.state.selection.main;
+      if (from !== to) {
+        // Run selected text only
+        queryToRun = view.state.sliceDoc(from, to);
+      } else {
+        // Run the statement the cursor is in
+        queryToRun = getStatementAtCursor(query, head);
+      }
+    }
+    if (!queryToRun.trim()) return;
+    const res = onExecute(queryToRun);
     setResult(res);
   }, [query, onExecute]);
 
@@ -82,6 +113,7 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
         </div>
         <div onKeyDown={handleKeyDown}>
           <CodeMirror
+            ref={editorRef}
             value={query}
             height={height}
             extensions={[sql()]}
@@ -142,17 +174,8 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
 
       {/* Results */}
       {result && (
-        <div className="mt-1 space-y-3">
-          {result.allResults ? (
-            result.allResults.map((r, i) => (
-              <div key={i}>
-                <div className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-1 px-1">{t.queryLabel(i + 1)}</div>
-                <ResultTable result={r} />
-              </div>
-            ))
-          ) : (
-            <ResultTable result={result} />
-          )}
+        <div className="mt-1">
+          <ResultTable result={result} />
         </div>
       )}
     </div>
