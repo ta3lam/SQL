@@ -27,4 +27,5 @@ export interface QueryResult {
   columns: string[];
   values: SqlValue[][];
   error?: string;
+  allResults?: { columns: string[]; values: SqlValue[][] }[];
 }

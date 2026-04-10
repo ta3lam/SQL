@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import initSqlJs, { Database } from 'sql.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { initSQL } from '../data/database';
-import { QueryResult } from '../types';
+import { QueryResult, SqlValue } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export function useSQL() {
@@ -47,6 +47,7 @@ export function useSQL() {
     try {
       const stmts = query.split(';').map(s => s.trim()).filter(Boolean);
       let lastResult: QueryResult = { columns: [], values: [] };
+      const allResults: { columns: string[]; values: SqlValue[][] }[] = [];
 
       for (const stmt of stmts) {
         const results = dbRef.current.exec(stmt);
@@ -70,6 +71,7 @@ export function useSQL() {
               columns: ['Result'],
               values: [[tRef.current.querySuccess(changed)]],
             };
+            allResults.push({ columns: lastResult.columns, values: lastResult.values });
           } else {
             lastResult = { columns: [], values: [] };
           }
@@ -78,10 +80,11 @@ export function useSQL() {
             columns: results[0].columns,
             values: results[0].values,
           };
+          allResults.push({ columns: lastResult.columns, values: lastResult.values });
         }
       }
 
-      return lastResult;
+      return { ...lastResult, allResults: allResults.length > 1 ? allResults : undefined };
     } catch (err) {
       return {
         columns: [],

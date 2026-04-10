@@ -35,6 +35,7 @@ export interface Translations {
   noRowsReturned: string;
   rowsReturned: (n: number) => string;
   columnsCount: (n: number) => string;
+  queryLabel: (n: number) => string;
   // ExercisePanel
   exerciseOf: (current: number, total: number) => string;
   exercisesCompleted: (done: number, total: number) => string;
@@ -135,6 +136,7 @@ export const translations: Record<Lang, Translations> = {
     noRowsReturned: 'Query executed successfully — no rows returned.',
     rowsReturned: (n) => `${n} row${n !== 1 ? 's' : ''} returned`,
     columnsCount: (n) => `${n} columns`,
+    queryLabel: (n) => `Query ${n}`,
     // ExercisePanel
     exerciseOf: (current, total) => `Exercise ${current} of ${total}`,
     exercisesCompleted: (done, total) => `${done}/${total} completed`,
@@ -300,6 +302,7 @@ export const translations: Record<Lang, Translations> = {
       if (n >= 3 && n <= 10) return `${n} أعمدة`;
       return `${n} عموداً`;
     },
+    queryLabel: (n) => `الاستعلام ${n}`,
     // ExercisePanel
     exerciseOf: (current, total) => `التمرين ${current} من ${total}`,
     exercisesCompleted: (done, total) => `${done} من ${total} مكتملة`,

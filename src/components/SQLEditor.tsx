@@ -142,8 +142,17 @@ export function SQLEditor({ initialValue = '', injectedQuery, onExecute, onReset
 
       {/* Results */}
       {result && (
-        <div className="mt-1">
-          <ResultTable result={result} />
+        <div className="mt-1 space-y-3">
+          {result.allResults ? (
+            result.allResults.map((r, i) => (
+              <div key={i}>
+                <div className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-1 px-1">{t.queryLabel(i + 1)}</div>
+                <ResultTable result={r} />
+              </div>
+            ))
+          ) : (
+            <ResultTable result={result} />
+          )}
         </div>
       )}
     </div>
