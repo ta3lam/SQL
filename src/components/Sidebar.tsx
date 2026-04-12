@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Lesson } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import logo from '../assets/logo.png';
 
 interface SidebarProps {
   lessons: Lesson[];
@@ -70,11 +71,7 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
       {/* Header */}
       <div className="p-5 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-            </svg>
-          </div>
+          <img src={logo} alt="Ta3laM" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
           <div>
             <h1 className="text-lg font-bold text-gray-800 dark:text-white">{t.appTitle}</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">{t.appSubtitle}</p>
