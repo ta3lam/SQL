@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Lesson } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import logo from '../assets/logo.png';
+import { CheatSheet } from './CheatSheet';
 
 interface SidebarProps {
   lessons: Lesson[];
@@ -53,6 +54,7 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
   const { t, isRTL, lang } = useLanguage();
   const [search, setSearch] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
   const completedCount = completedLessons.length;
   const progressPct = Math.round((completedCount / lessons.length) * 100);
   const activeGroups = module === 'dvd' ? DVD_LEVEL_GROUPS : LEVEL_GROUPS;
@@ -231,6 +233,21 @@ export function Sidebar({ lessons, currentLesson, onSelectLesson, completedLesso
           );
         })}
       </nav>
+
+      {/* Cheat Sheet link */}
+      <div className="border-t border-gray-200 dark:border-gray-700 p-3 flex-shrink-0">
+        <button
+          onClick={() => setShowCheatSheet(true)}
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors ${isRTL ? 'flex-row-reverse' : ''}`}
+        >
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {t.sqlCheatSheet}
+        </button>
+      </div>
+
+      {showCheatSheet && <CheatSheet onClose={() => setShowCheatSheet(false)} />}
     </aside>
   );
 }

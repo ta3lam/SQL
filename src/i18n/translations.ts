@@ -83,6 +83,8 @@ export interface Translations {
   // Mark as complete
   markComplete: string;
   lessonCompleted: string;
+  // Cheat Sheet
+  sqlCheatSheet: string;
 }
 
 export const translations: Record<Lang, Translations> = {
@@ -240,6 +242,8 @@ export const translations: Record<Lang, Translations> = {
     // Mark as complete
     markComplete: 'Mark as Complete',
     lessonCompleted: '✅ Lesson completed',
+    // Cheat Sheet
+    sqlCheatSheet: 'SQL Cheat Sheet',
   },
 
   ar: {
@@ -412,5 +416,7 @@ export const translations: Record<Lang, Translations> = {
     // Mark as complete
     markComplete: 'تمييز كمكتمل',
     lessonCompleted: '✅ تم إكمال الدرس',
+    // Cheat Sheet
+    sqlCheatSheet: 'ورقة مرجعية SQL',
   },
 };
