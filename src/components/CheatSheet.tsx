@@ -293,6 +293,20 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'string-agg',
+        labelEn: 'STRING_AGG / GROUP_CONCAT',
+        labelAr: 'STRING_AGG / GROUP_CONCAT',
+        descEn: 'Concatenates values from multiple rows into a single string, with a separator. Called GROUP_CONCAT in MySQL/SQLite.',
+        descAr: 'يدمج قيم صفوف متعددة في نص واحد مع فاصل. يُسمى GROUP_CONCAT في MySQL/SQLite.',
+        examples: [
+          {
+            titleEn: 'List all employee names per department',
+            titleAr: 'قائمة أسماء الموظفين لكل قسم',
+            code: '-- PostgreSQL\nSELECT department,\n       STRING_AGG(name, \', \' ORDER BY name) AS members\nFROM employees\nGROUP BY department;\n\n-- MySQL / SQLite\nSELECT department,\n       GROUP_CONCAT(name ORDER BY name) AS members\nFROM employees\nGROUP BY department;',
+          },
+        ],
+      },
     ],
   },
   {
@@ -370,6 +384,32 @@ const GROUPS: Group[] = [
         examples: [
           {
             code: 'SELECT e.name   AS employee,\n       m.name   AS manager\nFROM employees e\nJOIN employees m\n  ON e.manager_id = m.id;',
+          },
+        ],
+      },
+      {
+        id: 'natural-join',
+        labelEn: 'NATURAL JOIN',
+        labelAr: 'NATURAL JOIN',
+        descEn: 'Automatically joins tables on all columns that share the same name. Convenient but fragile — avoid in production when schemas can change.',
+        descAr: 'يصل الجداول تلقائياً على كل الأعمدة ذات الاسم المشترك. مريح لكن هش — تجنّبه في الإنتاج عند تغيّر المخططات.',
+        examples: [
+          {
+            code: '-- Joins on any column with the same name in both tables\nSELECT * FROM employees NATURAL JOIN departments;',
+          },
+        ],
+      },
+      {
+        id: 'lateral-join',
+        labelEn: 'LATERAL JOIN',
+        labelAr: 'LATERAL JOIN',
+        descEn: 'Allows a subquery in the FROM clause to reference columns from preceding tables — like a correlated subquery that returns multiple rows.',
+        descAr: 'يتيح لاستعلام فرعي في FROM الإشارة إلى أعمدة من جداول سابقة — مثل استعلام فرعي مرتبط يُرجع صفوفاً متعددة.',
+        examples: [
+          {
+            titleEn: 'Latest 2 orders per customer',
+            titleAr: 'آخر طلبين لكل عميل',
+            code: 'SELECT c.name, o.order_date, o.total\nFROM customers c\nCROSS JOIN LATERAL (\n  SELECT order_date, total\n  FROM orders\n  WHERE customer_id = c.id\n  ORDER BY order_date DESC\n  LIMIT 2\n) o;',
           },
         ],
       },
@@ -582,6 +622,44 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'ntile',
+        labelEn: 'NTILE',
+        labelAr: 'NTILE',
+        descEn: 'Divides rows into N roughly equal buckets and assigns each row a bucket number. Useful for percentile-based grouping.',
+        descAr: 'يقسّم الصفوف إلى N مجموعات متساوية تقريباً ويعيّن رقم المجموعة لكل صف. مفيد للتجميع بالنسب المئوية.',
+        examples: [
+          {
+            titleEn: 'Divide employees into salary quartiles',
+            titleAr: 'تقسيم الموظفين إلى أرباع راتب',
+            code: 'SELECT name, salary,\n       NTILE(4) OVER (ORDER BY salary) AS quartile\nFROM employees;',
+          },
+        ],
+      },
+      {
+        id: 'percent-rank',
+        labelEn: 'PERCENT_RANK / CUME_DIST',
+        labelAr: 'PERCENT_RANK / CUME_DIST',
+        descEn: 'PERCENT_RANK gives relative rank as a value 0–1. CUME_DIST gives the fraction of rows with a value ≤ the current row.',
+        descAr: 'PERCENT_RANK يعطي الرتبة النسبية كقيمة 0–1. CUME_DIST يعطي نسبة الصفوف التي قيمتها ≤ الصف الحالي.',
+        examples: [
+          {
+            code: 'SELECT name, salary,\n       ROUND(PERCENT_RANK() OVER (ORDER BY salary)::NUMERIC, 2) AS pct_rank,\n       ROUND(CUME_DIST()    OVER (ORDER BY salary)::NUMERIC, 2) AS cume_dist\nFROM employees;',
+          },
+        ],
+      },
+      {
+        id: 'first-last-value',
+        labelEn: 'FIRST_VALUE / LAST_VALUE',
+        labelAr: 'FIRST_VALUE / LAST_VALUE',
+        descEn: 'Return the first or last value in the window frame. For LAST_VALUE to work correctly you must extend the frame to UNBOUNDED FOLLOWING.',
+        descAr: 'يُرجع أول أو آخر قيمة في إطار النافذة. لكي يعمل LAST_VALUE بشكل صحيح يجب توسيع الإطار إلى UNBOUNDED FOLLOWING.',
+        examples: [
+          {
+            code: 'SELECT name, department, salary,\n  FIRST_VALUE(salary) OVER (\n    PARTITION BY department ORDER BY salary DESC\n  ) AS highest_in_dept,\n  LAST_VALUE(salary) OVER (\n    PARTITION BY department ORDER BY salary DESC\n    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING\n  ) AS lowest_in_dept\nFROM employees;',
+          },
+        ],
+      },
     ],
   },
   {
@@ -660,6 +738,30 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'lpad-rpad',
+        labelEn: 'LPAD / RPAD',
+        labelAr: 'LPAD / RPAD',
+        descEn: 'Pads a string on the left or right to a given length with a specified character.',
+        descAr: 'يُحشو النص من اليسار أو اليمين بحرف محدد حتى يصل إلى الطول المطلوب.',
+        examples: [
+          {
+            code: "SELECT LPAD('42', 6, '0')   -- → '000042'\nSELECT RPAD('hello', 8, '.') -- → 'hello...'\n\n-- Zero-pad an order ID\nSELECT LPAD(id::TEXT, 8, '0') AS order_code\nFROM orders;",
+          },
+        ],
+      },
+      {
+        id: 'position',
+        labelEn: 'POSITION / CHARINDEX',
+        labelAr: 'POSITION / CHARINDEX',
+        descEn: 'Returns the position (1-based) of the first occurrence of a substring inside a string. Returns 0 if not found.',
+        descAr: 'يُرجع موضع أول ظهور (يبدأ من 1) لنص فرعي داخل نص. يُرجع 0 إذا لم يُوجد.',
+        examples: [
+          {
+            code: "-- Standard SQL\nSELECT POSITION('@' IN 'user@example.com')  -- → 5\n\n-- SQL Server\nSELECT CHARINDEX('@', 'user@example.com')   -- → 5",
+          },
+        ],
+      },
     ],
   },
   {
@@ -711,6 +813,18 @@ const GROUPS: Group[] = [
         examples: [
           {
             code: "-- Add 30 days\nSELECT hire_date + INTERVAL '30 days' FROM employees;\n\n-- Subtract 1 year\nSELECT NOW() - INTERVAL '1 year';\n\n-- Days between two dates\nSELECT end_date - start_date AS duration_days\nFROM projects;",
+          },
+        ],
+      },
+      {
+        id: 'to-char',
+        labelEn: 'TO_CHAR / TO_DATE',
+        labelAr: 'TO_CHAR / TO_DATE',
+        descEn: 'TO_CHAR formats a date or number as a string using a format mask. TO_DATE parses a string into a date.',
+        descAr: 'TO_CHAR يُنسّق تاريخاً أو رقماً كنص باستخدام قالب تنسيق. TO_DATE يحوّل نصاً إلى تاريخ.',
+        examples: [
+          {
+            code: "-- Format a date\nSELECT TO_CHAR(hire_date, 'DD Mon YYYY')  -- → '15 Jan 2024'\nFROM employees;\n\n-- Format a number with commas\nSELECT TO_CHAR(salary, 'FM999,999.00')    -- → '6,000.00'\nFROM employees;\n\n-- Parse a string to date\nSELECT TO_DATE('15-01-2024', 'DD-MM-YYYY');",
           },
         ],
       },
@@ -812,6 +926,30 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'constraints',
+        labelEn: 'Constraints',
+        labelAr: 'القيود (Constraints)',
+        descEn: 'Rules enforced on columns to maintain data integrity: PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, NOT NULL, DEFAULT.',
+        descAr: 'قواعد مفروضة على الأعمدة للحفاظ على سلامة البيانات: PRIMARY KEY، FOREIGN KEY، UNIQUE، CHECK، NOT NULL، DEFAULT.',
+        examples: [
+          {
+            code: 'CREATE TABLE orders (\n  id          INTEGER      PRIMARY KEY,\n  customer_id INTEGER      NOT NULL\n                           REFERENCES customers(id),\n  status      VARCHAR(20)  NOT NULL\n                           DEFAULT \'pending\'\n                           CHECK (status IN (\'pending\',\'shipped\',\'delivered\')),\n  total       DECIMAL(10,2) CHECK (total >= 0),\n  email       VARCHAR(255) UNIQUE\n);',
+          },
+        ],
+      },
+      {
+        id: 'create-sequence',
+        labelEn: 'CREATE SEQUENCE',
+        labelAr: 'CREATE SEQUENCE',
+        descEn: 'Generates an auto-incrementing series of numbers. Used to produce unique IDs (alternative to SERIAL / IDENTITY columns).',
+        descAr: 'يولّد سلسلة أرقام تتزايد تلقائياً. يُستخدم لإنتاج معرّفات فريدة (بديل عن SERIAL / IDENTITY).',
+        examples: [
+          {
+            code: 'CREATE SEQUENCE order_id_seq\n  START WITH 1000\n  INCREMENT BY 1;\n\n-- Use it\nINSERT INTO orders (id, customer_id)\nVALUES (NEXTVAL(\'order_id_seq\'), 5);\n\n-- Peek without consuming\nSELECT CURRVAL(\'order_id_seq\');',
+          },
+        ],
+      },
     ],
   },
   {
@@ -851,6 +989,37 @@ const GROUPS: Group[] = [
         examples: [
           {
             code: "DELETE FROM employees\nWHERE id = 42;\n\nDELETE FROM orders\nWHERE status = 'cancelled'\n  AND created_at < '2023-01-01';",
+          },
+        ],
+      },
+      {
+        id: 'upsert',
+        labelEn: 'UPSERT (INSERT ON CONFLICT)',
+        labelAr: 'UPSERT (INSERT ON CONFLICT)',
+        descEn: 'Inserts a row; if a conflict (duplicate key) occurs, updates the existing row instead. Called UPSERT (Update + Insert).',
+        descAr: 'يُدرج صفاً؛ إذا حدث تعارض (مفتاح مكرر) يُحدّث الصف الموجود عوضاً عن ذلك. يُعرف بـ UPSERT (تحديث + إدراج).',
+        examples: [
+          {
+            titleEn: 'PostgreSQL',
+            titleAr: 'PostgreSQL',
+            code: "INSERT INTO products (id, name, price)\nVALUES (1, 'Widget', 9.99)\nON CONFLICT (id)\nDO UPDATE SET\n  name  = EXCLUDED.name,\n  price = EXCLUDED.price;",
+          },
+          {
+            titleEn: 'SQLite',
+            titleAr: 'SQLite',
+            code: "INSERT OR REPLACE INTO products (id, name, price)\nVALUES (1, 'Widget', 9.99);",
+          },
+        ],
+      },
+      {
+        id: 'merge',
+        labelEn: 'MERGE',
+        labelAr: 'MERGE',
+        descEn: 'Synchronises a target table with a source in one statement: INSERT when no match, UPDATE when match, optionally DELETE.',
+        descAr: 'يزامن جدول هدف مع مصدر في جملة واحدة: INSERT عند عدم التطابق، UPDATE عند التطابق، وحذف اختيارياً.',
+        examples: [
+          {
+            code: 'MERGE INTO inventory AS target\nUSING shipment    AS source\n  ON target.product_id = source.product_id\nWHEN MATCHED THEN\n  UPDATE SET quantity = target.quantity + source.quantity\nWHEN NOT MATCHED THEN\n  INSERT (product_id, quantity)\n  VALUES (source.product_id, source.quantity);',
           },
         ],
       },
@@ -935,6 +1104,96 @@ const GROUPS: Group[] = [
         examples: [
           {
             code: 'EXPLAIN\nSELECT * FROM employees WHERE dept_id = 2;\n\nEXPLAIN ANALYZE\nSELECT * FROM orders WHERE total > 1000;',
+          },
+        ],
+      },
+      {
+        id: 'generate-series',
+        labelEn: 'GENERATE_SERIES',
+        labelAr: 'GENERATE_SERIES',
+        descEn: 'PostgreSQL function that generates a set of rows from start to stop with an optional step. Useful for date ranges and test data.',
+        descAr: 'دالة PostgreSQL تولّد مجموعة صفوف من البداية إلى النهاية مع خطوة اختيارية. مفيدة لنطاقات التواريخ والبيانات التجريبية.',
+        examples: [
+          {
+            code: "-- Numbers 1 to 10\nSELECT * FROM GENERATE_SERIES(1, 10);\n\n-- Every day in January 2024\nSELECT day::DATE\nFROM GENERATE_SERIES(\n  '2024-01-01'::DATE,\n  '2024-01-31'::DATE,\n  INTERVAL '1 day'\n) AS t(day);",
+          },
+        ],
+      },
+      {
+        id: 'regexp',
+        labelEn: 'REGEXP / SIMILAR TO',
+        labelAr: 'REGEXP / SIMILAR TO',
+        descEn: 'Matches a string against a regular expression pattern. More powerful than LIKE — supports character classes, repetition, and alternation.',
+        descAr: 'يطابق نصاً مع نمط تعبير نمطي. أقوى من LIKE — يدعم فئات الأحرف والتكرار والتبديل.',
+        examples: [
+          {
+            code: "-- PostgreSQL: ~ operator\nSELECT name FROM employees\nWHERE name ~ '^A.*n$';   -- starts with A, ends with n\n\n-- Case-insensitive\nSELECT name FROM employees\nWHERE name ~* 'alice';\n\n-- MySQL / SQLite\nSELECT name FROM employees\nWHERE name REGEXP '^A.*n$';",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    groupEn: 'Math Functions',
+    groupAr: 'الدوال الرياضية',
+    entries: [
+      {
+        id: 'round',
+        labelEn: 'ROUND / TRUNC',
+        labelAr: 'ROUND / TRUNC',
+        descEn: 'ROUND rounds a number to N decimal places. TRUNC truncates (cuts off) without rounding.',
+        descAr: 'ROUND يقرّب رقماً إلى N منزلة عشرية. TRUNC يقتطع دون تقريب.',
+        examples: [
+          {
+            code: 'SELECT ROUND(3.14159, 2)   -- → 3.14\nSELECT ROUND(3.567, 0)    -- → 4\nSELECT TRUNC(3.9)         -- → 3\nSELECT TRUNC(salary, -3)  -- round down to nearest 1000',
+          },
+        ],
+      },
+      {
+        id: 'abs',
+        labelEn: 'ABS',
+        labelAr: 'ABS',
+        descEn: 'Returns the absolute (positive) value of a number.',
+        descAr: 'يُرجع القيمة المطلقة (الموجبة) لرقم.',
+        examples: [
+          {
+            code: 'SELECT ABS(-42)    -- → 42\nSELECT ABS(42)     -- → 42\n\n-- Difference regardless of sign\nSELECT ABS(price - cost) AS margin FROM products;',
+          },
+        ],
+      },
+      {
+        id: 'ceil-floor',
+        labelEn: 'CEIL / FLOOR',
+        labelAr: 'CEIL / FLOOR',
+        descEn: 'CEIL rounds up to the nearest integer; FLOOR rounds down.',
+        descAr: 'CEIL يقرّب إلى أكبر عدد صحيح؛ FLOOR يقرّب إلى أصغر عدد صحيح.',
+        examples: [
+          {
+            code: 'SELECT CEIL(4.1)    -- → 5\nSELECT CEIL(-4.9)   -- → -4\nSELECT FLOOR(4.9)   -- → 4\nSELECT FLOOR(-4.1)  -- → -5',
+          },
+        ],
+      },
+      {
+        id: 'mod',
+        labelEn: 'MOD / %',
+        labelAr: 'MOD / %',
+        descEn: 'Returns the remainder after division. Useful for even/odd checks and cyclic operations.',
+        descAr: 'يُرجع باقي القسمة. مفيد لفحص الزوجية والعمليات الدورية.',
+        examples: [
+          {
+            code: 'SELECT MOD(10, 3)    -- → 1\nSELECT 10 % 3        -- → 1  (most databases)\n\n-- Find even-numbered rows\nSELECT * FROM employees\nWHERE MOD(id, 2) = 0;',
+          },
+        ],
+      },
+      {
+        id: 'power-sqrt',
+        labelEn: 'POWER / SQRT',
+        labelAr: 'POWER / SQRT',
+        descEn: 'POWER raises a number to an exponent. SQRT computes the square root.',
+        descAr: 'POWER يرفع رقماً إلى أس. SQRT يحسب الجذر التربيعي.',
+        examples: [
+          {
+            code: 'SELECT POWER(2, 10)   -- → 1024\nSELECT SQRT(144)     -- → 12\n\n-- Euclidean distance\nSELECT SQRT(POWER(x2-x1, 2) + POWER(y2-y1, 2)) AS distance\nFROM coordinates;',
           },
         ],
       },
