@@ -1204,6 +1204,124 @@ const GROUPS: Group[] = [
       },
     ],
   },
+  {
+    groupEn: 'Schema Inspection',
+    groupAr: 'فحص مخطط قاعدة البيانات',
+    entries: [
+      {
+        id: 'describe',
+        labelEn: 'DESCRIBE / DESC',
+        labelAr: 'DESCRIBE / DESC',
+        descEn: 'Shows the columns, data types, nullability, and keys of a table. Works in MySQL and SQLite (via PRAGMA).',
+        descAr: 'يعرض أعمدة الجدول وأنواع البيانات وقابلية القيم الفارغة والمفاتيح. يعمل في MySQL وSQLite (عبر PRAGMA).',
+        examples: [
+          {
+            titleEn: 'MySQL / MariaDB',
+            titleAr: 'MySQL / MariaDB',
+            code: 'DESCRIBE employees;\n-- or shorthand:\nDESC employees;',
+          },
+          {
+            titleEn: 'SQLite — PRAGMA',
+            titleAr: 'SQLite — PRAGMA',
+            code: 'PRAGMA table_info(employees);\n-- Returns: cid, name, type, notnull, dflt_value, pk',
+          },
+        ],
+      },
+      {
+        id: 'show-tables',
+        labelEn: 'SHOW TABLES / \\dt',
+        labelAr: 'SHOW TABLES / \\dt',
+        descEn: 'Lists all tables in the current database. Syntax differs by engine.',
+        descAr: 'يُدرج كل الجداول في قاعدة البيانات الحالية. تختلف الصياغة حسب محرك قاعدة البيانات.',
+        examples: [
+          {
+            titleEn: 'MySQL',
+            titleAr: 'MySQL',
+            code: 'SHOW TABLES;',
+          },
+          {
+            titleEn: 'PostgreSQL (psql command)',
+            titleAr: 'PostgreSQL (أمر psql)',
+            code: '\\dt          -- list tables\n\\dt public.*  -- tables in public schema',
+          },
+          {
+            titleEn: 'SQLite',
+            titleAr: 'SQLite',
+            code: ".tables\n-- or via SQL:\nSELECT name FROM sqlite_master\nWHERE type = 'table'\nORDER BY name;",
+          },
+        ],
+      },
+      {
+        id: 'show-columns',
+        labelEn: 'SHOW COLUMNS',
+        labelAr: 'SHOW COLUMNS',
+        descEn: 'Lists all columns of a table with their type, nullability, default, and key info. MySQL / MariaDB specific.',
+        descAr: 'يُدرج كل أعمدة جدول مع نوعها وقابلية القيم الفارغة والقيمة الافتراضية ومعلومات المفتاح. خاص بـ MySQL / MariaDB.',
+        examples: [
+          {
+            code: 'SHOW COLUMNS FROM employees;\n\n-- Equivalent (MySQL)\nSHOW FIELDS FROM employees;',
+          },
+        ],
+      },
+      {
+        id: 'information-schema',
+        labelEn: 'INFORMATION_SCHEMA',
+        labelAr: 'INFORMATION_SCHEMA',
+        descEn: 'A standard set of read-only views available in PostgreSQL, MySQL, and SQL Server that expose metadata about all tables, columns, indexes, and constraints.',
+        descAr: 'مجموعة قياسية من المناظير للقراءة فقط في PostgreSQL وMySQL وSQL Server تكشف البيانات الوصفية لكل الجداول والأعمدة والفهارس والقيود.',
+        examples: [
+          {
+            titleEn: 'List all tables in the database',
+            titleAr: 'عرض كل الجداول في قاعدة البيانات',
+            code: "SELECT table_name, table_type\nFROM information_schema.tables\nWHERE table_schema = 'public'  -- or your schema name\nORDER BY table_name;",
+          },
+          {
+            titleEn: 'List all columns of a table',
+            titleAr: 'عرض كل أعمدة جدول',
+            code: "SELECT column_name,\n       data_type,\n       is_nullable,\n       column_default\nFROM information_schema.columns\nWHERE table_name = 'employees'\nORDER BY ordinal_position;",
+          },
+        ],
+      },
+      {
+        id: 'sqlite-master',
+        labelEn: 'sqlite_master (SQLite)',
+        labelAr: 'sqlite_master (SQLite)',
+        descEn: 'The built-in metadata table in SQLite. Stores the CREATE statements for every table, index, view, and trigger in the database.',
+        descAr: 'جدول البيانات الوصفية المدمج في SQLite. يخزن جمل CREATE لكل جدول وفهرس ومنظور ومشغّل في قاعدة البيانات.',
+        examples: [
+          {
+            titleEn: 'List all tables',
+            titleAr: 'عرض كل الجداول',
+            code: "SELECT name, sql\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;",
+          },
+          {
+            titleEn: 'See the CREATE statement for a table',
+            titleAr: 'عرض جملة CREATE لجدول معين',
+            code: "SELECT sql\nFROM sqlite_master\nWHERE type = 'table'\n  AND name = 'employees';",
+          },
+        ],
+      },
+      {
+        id: 'pg-catalog',
+        labelEn: 'pg_catalog (PostgreSQL)',
+        labelAr: 'pg_catalog (PostgreSQL)',
+        descEn: 'PostgreSQL system catalog tables. pg_tables lists all tables; pg_attribute lists all columns; psql backslash commands are handy shortcuts.',
+        descAr: 'جداول كتالوج نظام PostgreSQL. pg_tables يُدرج كل الجداول؛ pg_attribute يُدرج كل الأعمدة؛ أوامر psql هي اختصارات مفيدة.',
+        examples: [
+          {
+            titleEn: 'psql shortcuts',
+            titleAr: 'اختصارات psql',
+            code: '\\d  employees    -- describe table (columns + indexes)\n\\d+ employees    -- verbose: includes storage & comments\n\\df              -- list functions\n\\di              -- list indexes',
+          },
+          {
+            titleEn: 'Query system catalog directly',
+            titleAr: 'استعلام كتالوج النظام مباشرةً',
+            code: "SELECT tablename, tableowner\nFROM pg_tables\nWHERE schemaname = 'public';\n\nSELECT column_name, data_type\nFROM information_schema.columns\nWHERE table_name = 'employees';",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 // Flat list of all entries for quick lookup
