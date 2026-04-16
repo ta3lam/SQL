@@ -954,6 +954,20 @@ interface CheatSheetProps {
 export function CheatSheet({ onClose }: CheatSheetProps) {
   const { lang, isRTL } = useLanguage();
   const [selectedId, setSelectedId] = useState(ALL_ENTRIES[0].id);
+  const [search, setSearch] = useState('');
+
+  const query = search.trim().toLowerCase();
+  const filteredGroups = query
+    ? GROUPS.map(group => ({
+        ...group,
+        entries: group.entries.filter(e =>
+          e.labelEn.toLowerCase().includes(query) ||
+          e.labelAr.includes(search.trim()) ||
+          e.descEn.toLowerCase().includes(query) ||
+          e.descAr.includes(search.trim())
+        ),
+      })).filter(g => g.entries.length > 0)
+    : GROUPS;
 
   const selected = ALL_ENTRIES.find(e => e.id === selectedId)!;
 
@@ -996,30 +1010,69 @@ export function CheatSheet({ onClose }: CheatSheetProps) {
         <div className={`flex flex-1 overflow-hidden ${isRTL ? 'flex-row-reverse' : ''}`}>
 
           {/* Left nav */}
-          <nav className={`w-52 flex-shrink-0 overflow-y-auto bg-gray-50 dark:bg-gray-800/60 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 py-3`}>
-            {GROUPS.map(group => (
-              <div key={group.groupEn} className="mb-1">
-                <p className={`px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 ${isRTL ? 'text-right' : ''}`}>
-                  {lang === 'ar' ? group.groupAr : group.groupEn}
-                </p>
-                {group.entries.map(entry => {
-                  const isActive = entry.id === selectedId;
-                  return (
-                    <button
-                      key={entry.id}
-                      onClick={() => setSelectedId(entry.id)}
-                      className={`w-full px-4 py-1.5 text-xs transition-colors ${isRTL ? 'text-right' : 'text-left'} ${
-                        isActive
-                          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-semibold border-r-2 border-indigo-500'
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
-                      }`}
-                    >
-                      {lang === 'ar' ? entry.labelAr : entry.labelEn}
-                    </button>
-                  );
-                })}
+          <nav className={`w-56 flex-shrink-0 flex flex-col bg-gray-50 dark:bg-gray-800/60 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700`}>
+            {/* Search bar */}
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <div className="relative">
+                <svg
+                  className={`absolute top-2 ${isRTL ? 'right-2.5' : 'left-2.5'} w-3.5 h-3.5 text-gray-400`}
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="search"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder={lang === 'ar' ? 'ابحث... مثال: SELECT' : 'Search... e.g. JOIN'}
+                  dir="auto"
+                  className={`w-full ${isRTL ? 'pr-8 pl-3' : 'pl-8 pr-3'} py-1.5 text-xs rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 transition-colors`}
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    className={`absolute top-2 ${isRTL ? 'left-2.5' : 'right-2.5'} text-gray-400 hover:text-gray-600 dark:hover:text-gray-200`}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
-            ))}
+            </div>
+
+            {/* Nav list */}
+            <div className="flex-1 overflow-y-auto py-2">
+              {filteredGroups.length === 0 ? (
+                <p className="px-4 py-6 text-xs text-center text-gray-400 dark:text-gray-500">
+                  {lang === 'ar' ? 'لا توجد نتائج' : 'No results found'}
+                </p>
+              ) : (
+                filteredGroups.map(group => (
+                  <div key={group.groupEn} className="mb-1">
+                    <p className={`px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 ${isRTL ? 'text-right' : ''}`}>
+                      {lang === 'ar' ? group.groupAr : group.groupEn}
+                    </p>
+                    {group.entries.map(entry => {
+                      const isActive = entry.id === selectedId;
+                      return (
+                        <button
+                          key={entry.id}
+                          onClick={() => { setSelectedId(entry.id); setSearch(''); }}
+                          className={`w-full px-4 py-1.5 text-xs transition-colors ${isRTL ? 'text-right' : 'text-left'} ${
+                            isActive
+                              ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-semibold border-r-2 border-indigo-500'
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
+                          }`}
+                        >
+                          {lang === 'ar' ? entry.labelAr : entry.labelEn}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </div>
           </nav>
 
           {/* Right content */}
