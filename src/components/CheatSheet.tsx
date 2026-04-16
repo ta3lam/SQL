@@ -447,15 +447,20 @@ const GROUPS: Group[] = [
       },
       {
         id: 'exists',
-        labelEn: 'EXISTS',
-        labelAr: 'EXISTS',
-        descEn: 'Returns TRUE if the subquery returns at least one row. Often faster than IN for large datasets.',
-        descAr: 'يُرجع TRUE إذا أعاد الاستعلام الفرعي صفاً واحداً على الأقل. غالباً أسرع من IN على البيانات الكبيرة.',
+        labelEn: 'EXISTS / NOT EXISTS',
+        labelAr: 'EXISTS / NOT EXISTS',
+        descEn: 'EXISTS returns TRUE if the subquery returns at least one row. NOT EXISTS returns TRUE if the subquery returns no rows — the exact opposite.',
+        descAr: 'EXISTS يُرجع TRUE إذا أعاد الاستعلام الفرعي صفاً واحداً على الأقل. NOT EXISTS يُرجع TRUE إذا لم يُرجع الاستعلام الفرعي أي صفوف — العكس التام.',
         examples: [
           {
-            titleEn: 'Customers who placed at least one order',
-            titleAr: 'العملاء الذين قدّموا طلباً واحداً على الأقل',
+            titleEn: 'EXISTS — customers who placed at least one order',
+            titleAr: 'EXISTS — العملاء الذين قدّموا طلباً واحداً على الأقل',
             code: 'SELECT name FROM customers c\nWHERE EXISTS (\n  SELECT 1 FROM orders o\n  WHERE o.customer_id = c.id\n);',
+          },
+          {
+            titleEn: 'NOT EXISTS — customers who never ordered',
+            titleAr: 'NOT EXISTS — العملاء الذين لم يُقدّموا أي طلب',
+            code: 'SELECT name FROM customers c\nWHERE NOT EXISTS (\n  SELECT 1 FROM orders o\n  WHERE o.customer_id = c.id\n);',
           },
         ],
       },
