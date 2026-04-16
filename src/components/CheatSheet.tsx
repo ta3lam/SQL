@@ -223,6 +223,25 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'all-any',
+        labelEn: 'ALL / ANY / SOME',
+        labelAr: 'ALL / ANY / SOME',
+        descEn: 'Compare a value against a set returned by a subquery. ANY (= SOME) is true if at least one value matches; ALL is true only if every value matches.',
+        descAr: 'يقارن قيمة بمجموعة مُرجعة من استعلام فرعي. ANY (= SOME) صحيح إذا طابقت قيمة واحدة على الأقل؛ ALL صحيح فقط إذا طابقت كل القيم.',
+        examples: [
+          {
+            titleEn: 'ANY — salary higher than at least one manager',
+            titleAr: 'ANY — راتب أعلى من مدير واحد على الأقل',
+            code: 'SELECT name, salary FROM employees\nWHERE salary > ANY (\n  SELECT salary FROM employees\n  WHERE role = \'manager\'\n);',
+          },
+          {
+            titleEn: 'ALL — salary higher than every manager',
+            titleAr: 'ALL — راتب أعلى من كل المدراء',
+            code: 'SELECT name, salary FROM employees\nWHERE salary > ALL (\n  SELECT salary FROM employees\n  WHERE role = \'manager\'\n);',
+          },
+        ],
+      },
     ],
   },
   {
@@ -304,6 +323,39 @@ const GROUPS: Group[] = [
             titleEn: 'List all employee names per department',
             titleAr: 'قائمة أسماء الموظفين لكل قسم',
             code: '-- PostgreSQL\nSELECT department,\n       STRING_AGG(name, \', \' ORDER BY name) AS members\nFROM employees\nGROUP BY department;\n\n-- MySQL / SQLite\nSELECT department,\n       GROUP_CONCAT(name ORDER BY name) AS members\nFROM employees\nGROUP BY department;',
+          },
+        ],
+      },
+      {
+        id: 'rollup-cube',
+        labelEn: 'ROLLUP / CUBE / GROUPING SETS',
+        labelAr: 'ROLLUP / CUBE / GROUPING SETS',
+        descEn: 'Extensions to GROUP BY for multi-dimensional aggregation. ROLLUP produces subtotals along a hierarchy; CUBE produces all combinations; GROUPING SETS lets you specify exactly which groupings you need.',
+        descAr: 'امتدادات لـ GROUP BY للتجميع متعدد الأبعاد. ROLLUP ينتج مجاميع فرعية عبر تسلسل هرمي؛ CUBE ينتج كل التركيبات؛ GROUPING SETS يتيح تحديد التجميعات التي تحتاجها بالضبط.',
+        examples: [
+          {
+            titleEn: 'ROLLUP — totals per dept, then grand total',
+            titleAr: 'ROLLUP — مجاميع لكل قسم ثم المجموع الكلي',
+            code: 'SELECT department, job_title, SUM(salary) AS total\nFROM employees\nGROUP BY ROLLUP(department, job_title);',
+          },
+          {
+            titleEn: 'CUBE — all combinations',
+            titleAr: 'CUBE — كل التركيبات',
+            code: 'SELECT region, product, SUM(sales)\nFROM sales_data\nGROUP BY CUBE(region, product);',
+          },
+        ],
+      },
+      {
+        id: 'filter-clause',
+        labelEn: 'FILTER (aggregate)',
+        labelAr: 'FILTER (داخل التجميع)',
+        descEn: 'Adds a WHERE condition to a single aggregate function without affecting the rest of the query. PostgreSQL / SQL Server 2022+ / SQLite 3.30+.',
+        descAr: 'يضيف شرط WHERE لدالة تجميع واحدة دون التأثير على بقية الاستعلام. PostgreSQL / SQL Server 2022+ / SQLite 3.30+.',
+        examples: [
+          {
+            titleEn: 'Count active vs. inactive in one query',
+            titleAr: 'عدّ النشطين وغير النشطين في استعلام واحد',
+            code: "SELECT\n  COUNT(*) AS total,\n  COUNT(*) FILTER (WHERE status = 'active')   AS active,\n  COUNT(*) FILTER (WHERE status = 'inactive') AS inactive,\n  AVG(salary) FILTER (WHERE department = 'IT') AS it_avg\nFROM employees;",
           },
         ],
       },
@@ -767,6 +819,42 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'left-right',
+        labelEn: 'LEFT / RIGHT',
+        labelAr: 'LEFT / RIGHT',
+        descEn: 'Extracts N characters from the left or right end of a string. A shorthand for SUBSTRING from the beginning or end.',
+        descAr: 'يستخرج N حروف من بداية النص أو نهايته. اختصار لـ SUBSTRING من البداية أو النهاية.',
+        examples: [
+          {
+            code: "SELECT LEFT('Hello World', 5)   -- → 'Hello'\nSELECT RIGHT('Hello World', 5)  -- → 'World'\n\n-- Extract area code from phone\nSELECT LEFT(phone, 3) AS area_code FROM customers;",
+          },
+        ],
+      },
+      {
+        id: 'split-part',
+        labelEn: 'SPLIT_PART / SUBSTRING_INDEX',
+        labelAr: 'SPLIT_PART / SUBSTRING_INDEX',
+        descEn: 'Splits a string by a delimiter and returns the Nth part. SPLIT_PART is PostgreSQL; SUBSTRING_INDEX is MySQL.',
+        descAr: 'يقسّم نصاً بفاصل ويُرجع الجزء رقم N. SPLIT_PART خاص بـ PostgreSQL؛ SUBSTRING_INDEX خاص بـ MySQL.',
+        examples: [
+          {
+            code: "-- PostgreSQL: SPLIT_PART(string, delimiter, position)\nSELECT SPLIT_PART('john.doe@email.com', '@', 1)  -- → 'john.doe'\nSELECT SPLIT_PART('john.doe@email.com', '@', 2)  -- → 'email.com'\n\n-- MySQL: SUBSTRING_INDEX(string, delimiter, count)\nSELECT SUBSTRING_INDEX('a,b,c,d', ',', 2)        -- → 'a,b'",
+          },
+        ],
+      },
+      {
+        id: 'reverse',
+        labelEn: 'REVERSE / REPEAT',
+        labelAr: 'REVERSE / REPEAT',
+        descEn: 'REVERSE returns the characters of a string in reverse order. REPEAT repeats a string N times.',
+        descAr: 'REVERSE يُرجع أحرف النص بترتيب معكوس. REPEAT يكرر نصاً N مرة.',
+        examples: [
+          {
+            code: "SELECT REVERSE('Hello')       -- → 'olleH'\nSELECT REPEAT('ab', 3)        -- → 'ababab'\nSELECT REPEAT('-', 20)        -- → '--------------------'",
+          },
+        ],
+      },
     ],
   },
   {
@@ -833,6 +921,49 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'datediff',
+        labelEn: 'DATEDIFF / DATE_ADD',
+        labelAr: 'DATEDIFF / DATE_ADD',
+        descEn: 'DATEDIFF calculates the difference between two dates in a given unit. DATE_ADD adds a time interval to a date. Both are MySQL / SQL Server functions.',
+        descAr: 'DATEDIFF يحسب الفرق بين تاريخين بوحدة محددة. DATE_ADD يضيف فترة زمنية لتاريخ. كلاهما دوال MySQL / SQL Server.',
+        examples: [
+          {
+            titleEn: 'MySQL',
+            titleAr: 'MySQL',
+            code: "-- Days between two dates\nSELECT DATEDIFF('2024-12-31', '2024-01-01')  -- → 365\n\n-- Add 3 months\nSELECT DATE_ADD('2024-01-15', INTERVAL 3 MONTH)  -- → 2024-04-15\n\n-- Subtract 7 days\nSELECT DATE_SUB(NOW(), INTERVAL 7 DAY);",
+          },
+          {
+            titleEn: 'SQL Server',
+            titleAr: 'SQL Server',
+            code: "SELECT DATEDIFF(DAY, '2024-01-01', '2024-12-31')  -- → 365\nSELECT DATEADD(MONTH, 3, '2024-01-15')            -- → 2024-04-15",
+          },
+        ],
+      },
+      {
+        id: 'age',
+        labelEn: 'AGE() — PostgreSQL',
+        labelAr: 'AGE() — PostgreSQL',
+        descEn: 'Returns the interval between two timestamps expressed in years, months, and days. Used to compute someone\'s age or tenure.',
+        descAr: 'يُرجع الفترة بين طابعين زمنيين معبّراً عنها بالسنوات والأشهر والأيام. يُستخدم لحساب عمر الشخص أو مدة الخدمة.',
+        examples: [
+          {
+            code: "-- Age from birth date to today\nSELECT AGE(birth_date) AS age FROM employees;\n-- → '32 years 4 months 12 days'\n\n-- Interval between two dates\nSELECT AGE('2024-12-31', '2020-06-15');\n-- → '4 years 6 months 16 days'",
+          },
+        ],
+      },
+      {
+        id: 'strftime',
+        labelEn: 'STRFTIME — SQLite',
+        labelAr: 'STRFTIME — SQLite',
+        descEn: 'SQLite\'s date formatting function. Formats a date/time value using format codes similar to C\'s strftime.',
+        descAr: 'دالة تنسيق التاريخ في SQLite. تُنسّق قيمة تاريخ/وقت باستخدام رموز تنسيق مشابهة لـ strftime في لغة C.',
+        examples: [
+          {
+            code: "SELECT STRFTIME('%Y-%m-%d', 'now')       -- → '2024-01-15'\nSELECT STRFTIME('%d/%m/%Y', hire_date)  -- → '15/01/2024'\nSELECT STRFTIME('%Y', hire_date) AS yr  -- extract year\nFROM employees;",
+          },
+        ],
+      },
     ],
   },
   {
@@ -874,6 +1005,30 @@ const GROUPS: Group[] = [
         examples: [
           {
             code: '-- Avoid division by zero\nSELECT revenue / NULLIF(quantity, 0) AS unit_price\nFROM sales;',
+          },
+        ],
+      },
+      {
+        id: 'greatest-least',
+        labelEn: 'GREATEST / LEAST',
+        labelAr: 'GREATEST / LEAST',
+        descEn: 'GREATEST returns the largest value from a list of expressions; LEAST returns the smallest. Both ignore NULLs unless all arguments are NULL.',
+        descAr: 'GREATEST يُرجع أكبر قيمة من قائمة تعبيرات؛ LEAST يُرجع أصغر قيمة. كلاهما يتجاهل NULL ما لم تكن كل الوسيطات NULL.',
+        examples: [
+          {
+            code: 'SELECT GREATEST(10, 20, 5)   -- → 20\nSELECT LEAST(10, 20, 5)      -- → 5\n\n-- Practical: cap a discount between 0% and 30%\nSELECT GREATEST(0, LEAST(discount, 0.30)) AS capped\nFROM promotions;',
+          },
+        ],
+      },
+      {
+        id: 'iif',
+        labelEn: 'IIF / IF',
+        labelAr: 'IIF / IF',
+        descEn: 'A shorthand one-line conditional. IIF(condition, true_value, false_value). Works in SQL Server and Access; MySQL uses IF().',
+        descAr: 'شرط مختصر في سطر واحد. IIF(الشرط، القيمة_إذا_صحيح، القيمة_إذا_خطأ). يعمل في SQL Server وAccess؛ MySQL يستخدم IF().',
+        examples: [
+          {
+            code: "-- SQL Server / Access\nSELECT name,\n       IIF(salary > 5000, 'High', 'Low') AS pay_band\nFROM employees;\n\n-- MySQL\nSELECT name,\n       IF(salary > 5000, 'High', 'Low') AS pay_band\nFROM employees;",
           },
         ],
       },
@@ -1028,6 +1183,37 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'truncate',
+        labelEn: 'TRUNCATE',
+        labelAr: 'TRUNCATE',
+        descEn: 'Removes all rows from a table instantly and cannot be rolled back in most engines. Much faster than DELETE with no WHERE clause.',
+        descAr: 'يحذف كل صفوف الجدول فوراً ولا يمكن التراجع عنه في معظم المحركات. أسرع بكثير من DELETE بدون WHERE.',
+        examples: [
+          {
+            code: 'TRUNCATE TABLE logs;\n\n-- PostgreSQL: optionally restart identity columns\nTRUNCATE TABLE orders RESTART IDENTITY;\n\n-- PostgreSQL: truncate multiple tables at once\nTRUNCATE TABLE orders, order_items;',
+          },
+        ],
+      },
+      {
+        id: 'update-join',
+        labelEn: 'UPDATE with JOIN',
+        labelAr: 'UPDATE مع JOIN',
+        descEn: 'Updates rows in one table based on values from another table. Syntax differs between MySQL and PostgreSQL.',
+        descAr: 'يُحدّث صفوفاً في جدول بناءً على قيم من جدول آخر. تختلف الصياغة بين MySQL وPostgreSQL.',
+        examples: [
+          {
+            titleEn: 'MySQL / SQL Server',
+            titleAr: 'MySQL / SQL Server',
+            code: 'UPDATE employees e\nJOIN departments d ON e.dept_id = d.id\nSET e.location = d.location\nWHERE d.name = \'Engineering\';',
+          },
+          {
+            titleEn: 'PostgreSQL (UPDATE FROM)',
+            titleAr: 'PostgreSQL (UPDATE FROM)',
+            code: "UPDATE employees e\nSET location = d.location\nFROM departments d\nWHERE e.dept_id = d.id\n  AND d.name = 'Engineering';",
+          },
+        ],
+      },
     ],
   },
   {
@@ -1067,6 +1253,20 @@ const GROUPS: Group[] = [
         examples: [
           {
             code: "BEGIN;\n  INSERT INTO logs VALUES ('step 1');\n  SAVEPOINT step1;\n  INSERT INTO logs VALUES ('step 2');\n  ROLLBACK TO SAVEPOINT step1;\n  -- step 2 undone, step 1 still there\nCOMMIT;",
+          },
+        ],
+      },
+      {
+        id: 'isolation-levels',
+        labelEn: 'Isolation Levels',
+        labelAr: 'مستويات العزل',
+        descEn: 'Controls how/when changes made in a transaction are visible to other concurrent transactions. Higher isolation = fewer anomalies but lower performance.',
+        descAr: 'يتحكم في كيفية/متى تكون التغييرات في معاملة مرئية للمعاملات المتزامنة الأخرى. العزل الأعلى = أخطاء أقل لكن أداء أبطأ.',
+        examples: [
+          {
+            titleEn: '4 levels — from least to most strict',
+            titleAr: '4 مستويات — من الأقل إلى الأكثر صرامة',
+            code: "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n-- Dirty reads allowed (fastest, least safe)\n\nSET TRANSACTION ISOLATION LEVEL READ COMMITTED;\n-- Default in most DBs. No dirty reads.\n\nSET TRANSACTION ISOLATION LEVEL REPEATABLE READ;\n-- Same row read twice = same result.\n\nSET TRANSACTION ISOLATION LEVEL SERIALIZABLE;\n-- Fully isolated, as if running one at a time (safest).",
           },
         ],
       },
@@ -1136,6 +1336,30 @@ const GROUPS: Group[] = [
           },
         ],
       },
+      {
+        id: 'materialized-view',
+        labelEn: 'MATERIALIZED VIEW',
+        labelAr: 'MATERIALIZED VIEW (منظور مادّي)',
+        descEn: 'Like a regular view but stores the query result physically on disk. Must be refreshed manually. Much faster to query than a regular view for expensive computations.',
+        descAr: 'مثل المنظور العادي لكنه يخزن نتيجة الاستعلام فيزيائياً على القرص. يجب تحديثه يدوياً. أسرع بكثير في الاستعلام من المنظور العادي للعمليات الثقيلة.',
+        examples: [
+          {
+            code: '-- Create\nCREATE MATERIALIZED VIEW monthly_revenue AS\n  SELECT DATE_TRUNC(\'month\', order_date) AS month,\n         SUM(total) AS revenue\n  FROM orders\n  GROUP BY 1;\n\n-- Refresh when data changes\nREFRESH MATERIALIZED VIEW monthly_revenue;\n\n-- Query it like a table\nSELECT * FROM monthly_revenue ORDER BY month;',
+          },
+        ],
+      },
+      {
+        id: 'grant-revoke',
+        labelEn: 'GRANT / REVOKE',
+        labelAr: 'GRANT / REVOKE',
+        descEn: 'GRANT gives a user or role permission on a database object. REVOKE removes that permission.',
+        descAr: 'GRANT يمنح مستخدماً أو دوراً صلاحية على كائن قاعدة بيانات. REVOKE يسحب تلك الصلاحية.',
+        examples: [
+          {
+            code: "-- Give a user SELECT on a table\nGRANT SELECT ON employees TO analyst_user;\n\n-- Give all DML privileges\nGRANT SELECT, INSERT, UPDATE, DELETE\n  ON orders TO app_user;\n\n-- Grant on all tables in schema\nGRANT SELECT ON ALL TABLES IN SCHEMA public TO reader;\n\n-- Revoke a permission\nREVOKE DELETE ON orders FROM app_user;",
+          },
+        ],
+      },
     ],
   },
   {
@@ -1199,6 +1423,42 @@ const GROUPS: Group[] = [
         examples: [
           {
             code: 'SELECT POWER(2, 10)   -- → 1024\nSELECT SQRT(144)     -- → 12\n\n-- Euclidean distance\nSELECT SQRT(POWER(x2-x1, 2) + POWER(y2-y1, 2)) AS distance\nFROM coordinates;',
+          },
+        ],
+      },
+      {
+        id: 'log-ln',
+        labelEn: 'LOG / LN / EXP',
+        labelAr: 'LOG / LN / EXP',
+        descEn: 'LOG computes base-10 or custom-base logarithm. LN is the natural logarithm (base e). EXP raises e to a power.',
+        descAr: 'LOG يحسب لوغاريتم الأساس 10 أو أساس مخصص. LN هو اللوغاريتم الطبيعي (الأساس e). EXP يرفع e إلى قوة.',
+        examples: [
+          {
+            code: 'SELECT LOG(100)          -- → 2  (base 10)\nSELECT LOG(2, 1024)      -- → 10 (log base 2 of 1024)\nSELECT LN(EXP(1))        -- → 1  (natural log)\nSELECT EXP(1)            -- → 2.718... (Euler\'s number)',
+          },
+        ],
+      },
+      {
+        id: 'random',
+        labelEn: 'RANDOM / RAND',
+        labelAr: 'RANDOM / RAND',
+        descEn: 'Generates a random floating-point number between 0 and 1. Use with ORDER BY to shuffle rows, or scale to get a random integer.',
+        descAr: 'يولّد رقماً عشرياً عشوائياً بين 0 و1. استخدمه مع ORDER BY لترتيب عشوائي، أو قم بتحجيمه للحصول على عدد صحيح عشوائي.',
+        examples: [
+          {
+            code: '-- PostgreSQL\nSELECT RANDOM()               -- → 0.573...\nSELECT FLOOR(RANDOM() * 100)  -- random integer 0–99\n\n-- MySQL\nSELECT RAND()\n\n-- Shuffle rows randomly\nSELECT * FROM employees ORDER BY RANDOM() LIMIT 5;',
+          },
+        ],
+      },
+      {
+        id: 'sign',
+        labelEn: 'SIGN',
+        labelAr: 'SIGN',
+        descEn: 'Returns -1 if the number is negative, 0 if zero, and 1 if positive. Useful for comparing direction of values without caring about magnitude.',
+        descAr: 'يُرجع -1 إذا كان الرقم سالباً، 0 إذا كان صفراً، و1 إذا كان موجباً. مفيد لمقارنة اتجاه القيم بدون الاهتمام بالحجم.',
+        examples: [
+          {
+            code: 'SELECT SIGN(-42)   -- → -1\nSELECT SIGN(0)     -- → 0\nSELECT SIGN(99)    -- → 1\n\n-- Classify profit vs. loss\nSELECT product,\n       CASE SIGN(revenue - cost)\n         WHEN  1 THEN \'Profit\'\n         WHEN  0 THEN \'Break-even\'\n         WHEN -1 THEN \'Loss\'\n       END AS result\nFROM products;',
           },
         ],
       },
