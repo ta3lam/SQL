@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface Example {
@@ -956,7 +957,7 @@ export function CheatSheet({ onClose }: CheatSheetProps) {
 
   const selected = ALL_ENTRIES.find(e => e.id === selectedId)!;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
@@ -1071,6 +1072,7 @@ export function CheatSheet({ onClose }: CheatSheetProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
