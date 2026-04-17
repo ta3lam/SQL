@@ -72,6 +72,18 @@ All UI strings live in `src/i18n/translations.ts` as a `Record<'en'|'ar', Transl
 
 `Sidebar.tsx` has two hardcoded `LEVEL_GROUPS` arrays (`LEVEL_GROUPS` for Company, `DVD_LEVEL_GROUPS` for DVD) that map lesson IDs to sidebar sections. When adding new lessons, you must add their IDs to the appropriate group array **and** add the corresponding label to `t.levels` (or `t.dvdLevels`) in both EN and AR in `translations.ts`. The Company module currently has 13 levels (IDs 1–60); DVD has 17 levels (IDs 101–160).
 
+### CheatSheet Component
+
+`src/components/CheatSheet.tsx` is a large, self-contained reference modal. It renders via `ReactDOM.createPortal` directly into `document.body` — this is mandatory because the `<aside>` sidebar has `overflow-y-auto` + `position: sticky`, which creates a stacking context that traps `position: fixed` children. The portal escapes that trap.
+
+Data structure inside `CheatSheet.tsx`:
+- `Group` → `Entry` → `Example[]` — all defined as `const GROUPS` in the same file (no external data file).
+- `Example` has an optional `result?: { columns: string[]; rows: (string | number | null)[][] }` field. When present, a green-themed result table renders beneath the code block.
+- 17 groups numbered `'1 · Foundations'` … `'17 · Administration & Security'`, with matching Arabic strings using Arabic-Indic numerals (`'١ · الأساسيات'` …).
+- `ALL_ENTRIES` is a flat array derived from `GROUPS` used for the active-entry lookup.
+
+When adding a new entry: add it to `GROUPS` in the correct group, include both `labelEn`/`labelAr`, `descEn`/`descAr`, and at least one `Example`. Add a `result` if the statement returns tabular data, a `{ columns: ['Status'], rows: [['...']] }` for DDL, or `{ columns: ['Rows Affected'], rows: [[N]] }` for DML.
+
 ### Deployment
 
 GitHub Actions (`.github/workflows/deploy.yml`) auto-deploys on push to `main`: runs `npm ci && npm run build`, then deploys `dist/index.html` to GitHub Pages.
