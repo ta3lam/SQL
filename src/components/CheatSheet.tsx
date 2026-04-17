@@ -94,7 +94,8 @@ const GROUPS: Group[] = [
             code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 5;',
             result: { columns: ['name', 'salary'], rows: [['Carol', 7200], ['Alice', 6000], ['David', 5500], ['Bob', 4500], ['Eve', 3800]] } },
           { titleEn: 'Page 2 (rows 11–20)', titleAr: 'الصفحة الثانية (الصفوف 11–20)',
-            code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 10 OFFSET 10;' },
+            code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 10 OFFSET 10;',
+            result: { columns: ['name', 'salary'], rows: [['Kevin', 3000], ['Lisa', 2800], ['Mike', 2700], ['Nina', 2600], ['Oscar', 2500]] } },
         ],
       },
       {
@@ -140,9 +141,11 @@ const GROUPS: Group[] = [
         descAr: 'يجمع شروطاً متعددة. AND يتطلب تحقق الجميع؛ OR يكفي تحقق واحد؛ NOT يعكس الشرط.',
         examples: [
           { titleEn: 'AND — both conditions must match', titleAr: 'AND — يجب أن يتحقق الشرطان',
-            code: "SELECT name FROM employees\nWHERE department = 'Sales'\n  AND salary > 4000;" },
+            code: "SELECT name FROM employees\nWHERE department = 'Sales'\n  AND salary > 4000;",
+            result: { columns: ['name'], rows: [['Alice'], ['David']] } },
           { titleEn: 'OR / NOT', titleAr: 'OR / NOT',
-            code: "SELECT name FROM employees\nWHERE department = 'HR'\n   OR department = 'IT';\n\nSELECT name FROM employees\nWHERE NOT department = 'Finance';" },
+            code: "SELECT name FROM employees\nWHERE department = 'HR'\n   OR department = 'IT';\n\nSELECT name FROM employees\nWHERE NOT department = 'Finance';",
+            result: { columns: ['name'], rows: [['Bob'], ['Carol'], ['Eve'], ['Frank']] } },
         ],
       },
       {
@@ -153,9 +156,11 @@ const GROUPS: Group[] = [
         descAr: 'يتحقق إذا كانت القيمة تتطابق مع أي قيمة في قائمة. بديل أنظف من شروط OR المتعددة.',
         examples: [
           { titleEn: 'Match a list', titleAr: 'مطابقة قائمة',
-            code: "SELECT name FROM employees\nWHERE department IN ('Sales', 'HR', 'IT');" },
+            code: "SELECT name FROM employees\nWHERE department IN ('Sales', 'HR', 'IT');",
+            result: { columns: ['name'], rows: [['Alice'], ['Bob'], ['Carol'], ['David'], ['Eve'], ['Frank']] } },
           { titleEn: 'Exclude a list', titleAr: 'استبعاد قائمة',
-            code: "SELECT name FROM employees\nWHERE department NOT IN ('Finance', 'Legal');" },
+            code: "SELECT name FROM employees\nWHERE department NOT IN ('Finance', 'Legal');",
+            result: { columns: ['name'], rows: [['Alice'], ['Bob'], ['Carol'], ['David'], ['Eve'], ['Frank']] } },
         ],
       },
       {
@@ -176,7 +181,8 @@ const GROUPS: Group[] = [
         descEn: 'Matches a string pattern. % matches any sequence of characters; _ matches exactly one character. ILIKE is case-insensitive (PostgreSQL).',
         descAr: 'يطابق نمطاً نصياً. % يمثّل أي تسلسل من الحروف؛ _ يمثّل حرفاً واحداً بالضبط. ILIKE لا يفرّق بين الحالات (PostgreSQL).',
         examples: [
-          { code: "-- Starts with 'A'\nSELECT name FROM employees WHERE name LIKE 'A%';\n\n-- Contains 'son'\nSELECT name FROM employees WHERE name LIKE '%son%';\n\n-- Case-insensitive (PostgreSQL)\nSELECT name FROM employees WHERE name ILIKE 'alice';" },
+          { code: "-- Starts with 'A'\nSELECT name FROM employees WHERE name LIKE 'A%';\n\n-- Contains 'son'\nSELECT name FROM employees WHERE name LIKE '%son%';\n\n-- Case-insensitive (PostgreSQL)\nSELECT name FROM employees WHERE name ILIKE 'alice';",
+            result: { columns: ['name (LIKE A%)'], rows: [['Alice'], ['Amanda'], ['Andrew']] } },
         ],
       },
       {
@@ -186,7 +192,8 @@ const GROUPS: Group[] = [
         descEn: 'Checks whether a column value is NULL (missing/unknown). You cannot use = NULL — you must use IS NULL.',
         descAr: 'يتحقق إذا كانت قيمة العمود NULL (مفقودة/غير معروفة). لا يمكن استخدام = NULL — يجب استخدام IS NULL.',
         examples: [
-          { code: '-- Employees with no manager\nSELECT name FROM employees\nWHERE manager_id IS NULL;\n\n-- Employees who have a phone number\nSELECT name FROM employees\nWHERE phone IS NOT NULL;' },
+          { code: '-- Employees with no manager\nSELECT name FROM employees\nWHERE manager_id IS NULL;\n\n-- Employees who have a phone number\nSELECT name FROM employees\nWHERE phone IS NOT NULL;',
+            result: { columns: ['name (IS NULL)', 'name (IS NOT NULL)'], rows: [['Carol', 'Alice'], ['Frank', 'Bob'], [null, 'David']] } },
         ],
       },
       {
@@ -197,9 +204,11 @@ const GROUPS: Group[] = [
         descAr: 'يقارن قيمة بمجموعة مُرجعة من استعلام فرعي. ANY (= SOME) صحيح إذا طابقت قيمة واحدة على الأقل؛ ALL صحيح فقط إذا طابقت كل القيم.',
         examples: [
           { titleEn: 'ANY — higher than at least one manager', titleAr: 'ANY — أعلى من مدير واحد على الأقل',
-            code: "SELECT name, salary FROM employees\nWHERE salary > ANY (\n  SELECT salary FROM employees\n  WHERE role = 'manager'\n);" },
+            code: "SELECT name, salary FROM employees\nWHERE salary > ANY (\n  SELECT salary FROM employees\n  WHERE role = 'manager'\n);",
+            result: { columns: ['name', 'salary'], rows: [['Alice', 6000], ['Carol', 7200], ['Frank', 9500]] } },
           { titleEn: 'ALL — higher than every manager', titleAr: 'ALL — أعلى من كل المدراء',
-            code: "SELECT name, salary FROM employees\nWHERE salary > ALL (\n  SELECT salary FROM employees\n  WHERE role = 'manager'\n);" },
+            code: "SELECT name, salary FROM employees\nWHERE salary > ALL (\n  SELECT salary FROM employees\n  WHERE role = 'manager'\n);",
+            result: { columns: ['name', 'salary'], rows: [['Frank', 9500]] } },
         ],
       },
     ],
@@ -289,7 +298,8 @@ const GROUPS: Group[] = [
         descAr: 'امتدادات لـ GROUP BY للتجميع متعدد الأبعاد. ROLLUP ينتج مجاميع فرعية؛ CUBE ينتج كل التركيبات.',
         examples: [
           { titleEn: 'ROLLUP — subtotals per dept + grand total', titleAr: 'ROLLUP — مجاميع فرعية + كلي',
-            code: 'SELECT department, job_title, SUM(salary) AS total\nFROM employees\nGROUP BY ROLLUP(department, job_title);' },
+            code: 'SELECT department, job_title, SUM(salary) AS total\nFROM employees\nGROUP BY ROLLUP(department, job_title);',
+            result: { columns: ['department', 'job_title', 'total'], rows: [['HR', 'Analyst', 11400], ['HR', 'Manager', 9500], ['HR', null, 20900], ['IT', 'Engineer', 16300], ['IT', null, 16300], [null, null, 37200]] } },
           { titleEn: 'CUBE — every combination', titleAr: 'CUBE — كل التركيبات',
             code: 'SELECT region, product, SUM(sales)\nFROM sales_data\nGROUP BY CUBE(region, product);' },
         ],
@@ -302,7 +312,8 @@ const GROUPS: Group[] = [
         descAr: 'يضيف شرط WHERE لدالة تجميع واحدة دون التأثير على بقية الاستعلام.',
         examples: [
           { titleEn: 'Count active vs. inactive in one pass', titleAr: 'عدّ النشطين وغير النشطين معاً',
-            code: "SELECT\n  COUNT(*) AS total,\n  COUNT(*) FILTER (WHERE status = 'active')   AS active,\n  COUNT(*) FILTER (WHERE status = 'inactive') AS inactive,\n  AVG(salary) FILTER (WHERE department = 'IT') AS it_avg\nFROM employees;" },
+            code: "SELECT\n  COUNT(*) AS total,\n  COUNT(*) FILTER (WHERE status = 'active')   AS active,\n  COUNT(*) FILTER (WHERE status = 'inactive') AS inactive,\n  AVG(salary) FILTER (WHERE department = 'IT') AS it_avg\nFROM employees;",
+            result: { columns: ['total', 'active', 'inactive', 'it_avg'], rows: [[12, 9, 3, 7350]] } },
         ],
       },
     ],
@@ -345,7 +356,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns all rows from the right table, plus matching rows from the left. Non-matching left rows appear as NULL.',
         descAr: 'يُرجع كل صفوف الجدول الأيمن، مع المطابق من الأيسر. الصفوف غير المتطابقة تظهر كـ NULL.',
         examples: [
-          { code: 'SELECT e.name, d.name AS department\nFROM employees e\nRIGHT JOIN departments d\n  ON e.dept_id = d.id;' },
+          { code: 'SELECT e.name, d.name AS department\nFROM employees e\nRIGHT JOIN departments d\n  ON e.dept_id = d.id;',
+            result: { columns: ['name', 'department'], rows: [['Alice', 'Sales'], ['Bob', 'IT'], ['Carol', 'HR'], [null, 'Marketing']] } },
         ],
       },
       {
@@ -355,7 +367,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns all rows from both tables. Where there is no match, the missing side is NULL.',
         descAr: 'يُرجع كل صفوف الجدولين. حيث لا توجد مطابقة، يكون الجانب المفقود NULL.',
         examples: [
-          { code: 'SELECT e.name, d.name AS department\nFROM employees e\nFULL OUTER JOIN departments d\n  ON e.dept_id = d.id;' },
+          { code: 'SELECT e.name, d.name AS department\nFROM employees e\nFULL OUTER JOIN departments d\n  ON e.dept_id = d.id;',
+            result: { columns: ['name', 'department'], rows: [['Alice', 'Sales'], ['Bob', 'IT'], ['Carol', 'HR'], [null, 'Marketing'], ['Dave', null]] } },
         ],
       },
       {
@@ -387,7 +400,8 @@ const GROUPS: Group[] = [
         descEn: 'Automatically joins tables on all columns that share the same name. Convenient but fragile — avoid in production when schemas can change.',
         descAr: 'يصل الجداول تلقائياً على كل الأعمدة ذات الاسم المشترك. مريح لكن هش — تجنّبه في الإنتاج عند تغيّر المخططات.',
         examples: [
-          { code: '-- Joins on any column with the same name in both tables\nSELECT * FROM employees NATURAL JOIN departments;' },
+          { code: '-- Joins on any column with the same name in both tables\nSELECT * FROM employees NATURAL JOIN departments;',
+            result: { columns: ['id', 'name', 'dept_id', 'dept_name'], rows: [[1, 'Alice', 2, 'Sales'], [2, 'Bob', 3, 'IT'], [3, 'Carol', 1, 'HR']] } },
         ],
       },
       {
@@ -398,7 +412,8 @@ const GROUPS: Group[] = [
         descAr: 'يتيح لاستعلام فرعي في FROM الإشارة إلى أعمدة من جداول سابقة — مثل استعلام فرعي مرتبط يُرجع صفوفاً متعددة.',
         examples: [
           { titleEn: 'Latest 2 orders per customer', titleAr: 'آخر طلبين لكل عميل',
-            code: 'SELECT c.name, o.order_date, o.total\nFROM customers c\nCROSS JOIN LATERAL (\n  SELECT order_date, total\n  FROM orders\n  WHERE customer_id = c.id\n  ORDER BY order_date DESC\n  LIMIT 2\n) o;' },
+            code: 'SELECT c.name, o.order_date, o.total\nFROM customers c\nCROSS JOIN LATERAL (\n  SELECT order_date, total\n  FROM orders\n  WHERE customer_id = c.id\n  ORDER BY order_date DESC\n  LIMIT 2\n) o;',
+            result: { columns: ['name', 'order_date', 'total'], rows: [['Alice', '2024-04-10', 320], ['Alice', '2024-03-05', 175], ['Bob', '2024-04-01', 890], ['Bob', '2024-02-18', 410]] } },
         ],
       },
     ],
@@ -430,7 +445,8 @@ const GROUPS: Group[] = [
         descEn: 'A subquery that returns a list of values used with IN to filter the outer query.',
         descAr: 'استعلام فرعي يُرجع قائمة قيم تُستخدم مع IN لتصفية الاستعلام الخارجي.',
         examples: [
-          { code: 'SELECT name FROM customers\nWHERE id IN (\n  SELECT customer_id\n  FROM orders\n  WHERE total > 1000\n);' },
+          { code: 'SELECT name FROM customers\nWHERE id IN (\n  SELECT customer_id\n  FROM orders\n  WHERE total > 1000\n);',
+            result: { columns: ['name'], rows: [['Alice'], ['Frank'], ['Grace']] } },
         ],
       },
       {
@@ -441,9 +457,11 @@ const GROUPS: Group[] = [
         descAr: 'EXISTS يُرجع TRUE إذا أعاد الاستعلام الفرعي صفاً واحداً على الأقل. NOT EXISTS يُرجع TRUE إذا لم يُرجع أي صفوف.',
         examples: [
           { titleEn: 'EXISTS — customers who placed at least one order', titleAr: 'EXISTS — عملاء لديهم طلب واحد على الأقل',
-            code: 'SELECT name FROM customers c\nWHERE EXISTS (\n  SELECT 1 FROM orders o\n  WHERE o.customer_id = c.id\n);' },
+            code: 'SELECT name FROM customers c\nWHERE EXISTS (\n  SELECT 1 FROM orders o\n  WHERE o.customer_id = c.id\n);',
+            result: { columns: ['name'], rows: [['Alice'], ['Bob'], ['Frank']] } },
           { titleEn: 'NOT EXISTS — customers who never ordered', titleAr: 'NOT EXISTS — عملاء لم يُقدّموا أي طلب',
-            code: 'SELECT name FROM customers c\nWHERE NOT EXISTS (\n  SELECT 1 FROM orders o\n  WHERE o.customer_id = c.id\n);' },
+            code: 'SELECT name FROM customers c\nWHERE NOT EXISTS (\n  SELECT 1 FROM orders o\n  WHERE o.customer_id = c.id\n);',
+            result: { columns: ['name'], rows: [['Carol'], ['Dave']] } },
         ],
       },
       {
@@ -453,7 +471,8 @@ const GROUPS: Group[] = [
         descEn: 'A subquery inside FROM that acts as a temporary table for the outer query.',
         descAr: 'استعلام فرعي داخل FROM يعمل كجدول مؤقت للاستعلام الخارجي.',
         examples: [
-          { code: 'SELECT dept, avg_salary\nFROM (\n  SELECT department AS dept,\n         AVG(salary)  AS avg_salary\n  FROM employees\n  GROUP BY department\n) AS dept_stats\nWHERE avg_salary > 5000;' },
+          { code: 'SELECT dept, avg_salary\nFROM (\n  SELECT department AS dept,\n         AVG(salary)  AS avg_salary\n  FROM employees\n  GROUP BY department\n) AS dept_stats\nWHERE avg_salary > 5000;',
+            result: { columns: ['dept', 'avg_salary'], rows: [['HR', 6200], ['IT', 5800], ['Sales', 5766.67]] } },
         ],
       },
     ],
@@ -473,7 +492,8 @@ const GROUPS: Group[] = [
         descEn: 'Combines results of two queries. UNION removes duplicates; UNION ALL keeps them. Both queries must have the same columns.',
         descAr: 'يدمج نتائج استعلامين. UNION يزيل التكرار؛ UNION ALL يحتفظ به. يجب أن يكون لكليهما نفس الأعمدة.',
         examples: [
-          { code: '-- Remove duplicates\nSELECT name FROM employees\nUNION\nSELECT name FROM contractors;\n\n-- Keep duplicates\nSELECT city FROM customers\nUNION ALL\nSELECT city FROM suppliers;' },
+          { code: '-- Remove duplicates\nSELECT name FROM employees\nUNION\nSELECT name FROM contractors;\n\n-- Keep duplicates\nSELECT city FROM customers\nUNION ALL\nSELECT city FROM suppliers;',
+            result: { columns: ['name (UNION — no duplicates)'], rows: [['Alice'], ['Bob'], ['Carol'], ['Dave'], ['Frank']] } },
         ],
       },
       {
@@ -483,7 +503,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns only rows that appear in both query results.',
         descAr: 'يُرجع فقط الصفوف التي تظهر في نتيجتي الاستعلامين.',
         examples: [
-          { code: 'SELECT product_id FROM orders_2023\nINTERSECT\nSELECT product_id FROM orders_2024;' },
+          { code: 'SELECT product_id FROM orders_2023\nINTERSECT\nSELECT product_id FROM orders_2024;',
+            result: { columns: ['product_id'], rows: [[101], [205], [340]] } },
         ],
       },
       {
@@ -493,7 +514,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns rows in the first query that do not appear in the second query.',
         descAr: 'يُرجع الصفوف الموجودة في الاستعلام الأول غير الموجودة في الثاني.',
         examples: [
-          { code: 'SELECT id FROM all_products\nEXCEPT\nSELECT product_id FROM order_items;' },
+          { code: 'SELECT id FROM all_products\nEXCEPT\nSELECT product_id FROM order_items;',
+            result: { columns: ['id'], rows: [[3], [7], [12]] } },
         ],
       },
     ],
@@ -525,7 +547,8 @@ const GROUPS: Group[] = [
         descEn: 'A shorthand one-line conditional. IIF(condition, true_value, false_value). Works in SQL Server; MySQL uses IF().',
         descAr: 'شرط مختصر في سطر واحد. يعمل في SQL Server؛ MySQL يستخدم IF().',
         examples: [
-          { code: "-- SQL Server\nSELECT name,\n       IIF(salary > 5000, 'High', 'Low') AS pay_band\nFROM employees;\n\n-- MySQL\nSELECT name,\n       IF(salary > 5000, 'High', 'Low') AS pay_band\nFROM employees;" },
+          { code: "-- SQL Server\nSELECT name,\n       IIF(salary > 5000, 'High', 'Low') AS pay_band\nFROM employees;\n\n-- MySQL\nSELECT name,\n       IF(salary > 5000, 'High', 'Low') AS pay_band\nFROM employees;",
+            result: { columns: ['name', 'pay_band'], rows: [['Alice', 'High'], ['Bob', 'Low'], ['Carol', 'High'], ['David', 'High'], ['Eve', 'Low']] } },
         ],
       },
       {
@@ -546,7 +569,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns NULL if the two arguments are equal, otherwise returns the first argument. Useful to avoid division by zero.',
         descAr: 'يُرجع NULL إذا تساوى الوسيطان، وإلا يُرجع الوسيط الأول. مفيد لتجنب القسمة على صفر.',
         examples: [
-          { code: '-- Avoid division by zero\nSELECT revenue / NULLIF(quantity, 0) AS unit_price\nFROM sales;' },
+          { code: '-- Avoid division by zero\nSELECT revenue / NULLIF(quantity, 0) AS unit_price\nFROM sales;',
+            result: { columns: ['unit_price'], rows: [[25.00], [null], [18.50], [null]] } },
         ],
       },
       {
@@ -556,7 +580,8 @@ const GROUPS: Group[] = [
         descEn: 'GREATEST returns the largest value from a list of expressions; LEAST returns the smallest. Both ignore NULLs unless all arguments are NULL.',
         descAr: 'GREATEST يُرجع أكبر قيمة من قائمة تعبيرات؛ LEAST يُرجع أصغر قيمة.',
         examples: [
-          { code: 'SELECT GREATEST(10, 20, 5)   -- → 20\nSELECT LEAST(10, 20, 5)      -- → 5\n\n-- Cap a discount between 0% and 30%\nSELECT GREATEST(0, LEAST(discount, 0.30)) AS capped\nFROM promotions;' },
+          { code: 'SELECT GREATEST(10, 20, 5)   -- → 20\nSELECT LEAST(10, 20, 5)      -- → 5\n\n-- Cap a discount between 0% and 30%\nSELECT GREATEST(0, LEAST(discount, 0.30)) AS capped\nFROM promotions;',
+            result: { columns: ['GREATEST(10,20,5)', 'LEAST(10,20,5)'], rows: [[20, 5]] } },
         ],
       },
     ],
@@ -580,7 +605,8 @@ const GROUPS: Group[] = [
             code: 'WITH high_earners AS (\n  SELECT * FROM employees\n  WHERE salary > 8000\n)\nSELECT name, department\nFROM high_earners\nORDER BY salary DESC;',
             result: { columns: ['name', 'department'], rows: [['Frank', 'HR'], ['Grace', 'IT']] } },
           { titleEn: 'Multiple CTEs', titleAr: 'CTEs متعددة',
-            code: 'WITH\n  dept_avg AS (\n    SELECT department, AVG(salary) AS avg\n    FROM employees\n    GROUP BY department\n  ),\n  top_depts AS (\n    SELECT department FROM dept_avg\n    WHERE avg > 6000\n  )\nSELECT * FROM top_depts;' },
+            code: 'WITH\n  dept_avg AS (\n    SELECT department, AVG(salary) AS avg\n    FROM employees\n    GROUP BY department\n  ),\n  top_depts AS (\n    SELECT department FROM dept_avg\n    WHERE avg > 6000\n  )\nSELECT * FROM top_depts;',
+            result: { columns: ['department'], rows: [['HR'], ['IT']] } },
         ],
       },
       {
@@ -591,7 +617,8 @@ const GROUPS: Group[] = [
         descAr: 'CTE يُشير إلى نفسه لاجتياز البيانات الهرمية أو الشبكية (مثل المخططات التنظيمية وأشجار الفئات).',
         examples: [
           { titleEn: 'Employee org chart', titleAr: 'المخطط التنظيمي للموظفين',
-            code: 'WITH RECURSIVE org AS (\n  -- Anchor: top-level (no manager)\n  SELECT id, name, manager_id, 0 AS level\n  FROM employees\n  WHERE manager_id IS NULL\n\n  UNION ALL\n\n  -- Recursive: one level down\n  SELECT e.id, e.name, e.manager_id, o.level + 1\n  FROM employees e\n  JOIN org o ON e.manager_id = o.id\n)\nSELECT level, name FROM org ORDER BY level;' },
+            code: 'WITH RECURSIVE org AS (\n  -- Anchor: top-level (no manager)\n  SELECT id, name, manager_id, 0 AS level\n  FROM employees\n  WHERE manager_id IS NULL\n\n  UNION ALL\n\n  -- Recursive: one level down\n  SELECT e.id, e.name, e.manager_id, o.level + 1\n  FROM employees e\n  JOIN org o ON e.manager_id = o.id\n)\nSELECT level, name FROM org ORDER BY level;',
+            result: { columns: ['level', 'name'], rows: [[0, 'Carol'], [1, 'Alice'], [1, 'Bob'], [2, 'David'], [2, 'Eve'], [2, 'Frank']] } },
         ],
       },
     ],
@@ -659,7 +686,8 @@ const GROUPS: Group[] = [
         descEn: 'PERCENT_RANK gives relative rank as a value 0–1. CUME_DIST gives the fraction of rows with a value ≤ the current row.',
         descAr: 'PERCENT_RANK يعطي الرتبة النسبية كقيمة 0–1. CUME_DIST يعطي نسبة الصفوف بقيمة ≤ الصف الحالي.',
         examples: [
-          { code: 'SELECT name, salary,\n       ROUND(PERCENT_RANK() OVER (ORDER BY salary)::NUMERIC, 2) AS pct_rank,\n       ROUND(CUME_DIST()    OVER (ORDER BY salary)::NUMERIC, 2) AS cume_dist\nFROM employees;' },
+          { code: 'SELECT name, salary,\n       ROUND(PERCENT_RANK() OVER (ORDER BY salary)::NUMERIC, 2) AS pct_rank,\n       ROUND(CUME_DIST()    OVER (ORDER BY salary)::NUMERIC, 2) AS cume_dist\nFROM employees;',
+            result: { columns: ['name', 'salary', 'pct_rank', 'cume_dist'], rows: [['Eve', 3200, 0.00, 0.17], ['Bob', 4500, 0.20, 0.33], ['David', 5500, 0.40, 0.50], ['Alice', 6000, 0.60, 0.67], ['Carol', 7200, 0.80, 0.83], ['Frank', 9500, 1.00, 1.00]] } },
         ],
       },
       {
@@ -681,7 +709,8 @@ const GROUPS: Group[] = [
         descEn: 'Return the first or last value in the window frame. For LAST_VALUE you must extend the frame to UNBOUNDED FOLLOWING.',
         descAr: 'يُرجع أول أو آخر قيمة في إطار النافذة. لـ LAST_VALUE يجب توسيع الإطار إلى UNBOUNDED FOLLOWING.',
         examples: [
-          { code: 'SELECT name, department, salary,\n  FIRST_VALUE(salary) OVER (\n    PARTITION BY department ORDER BY salary DESC\n  ) AS highest_in_dept,\n  LAST_VALUE(salary) OVER (\n    PARTITION BY department ORDER BY salary DESC\n    ROWS BETWEEN UNBOUNDED PRECEDING\n              AND UNBOUNDED FOLLOWING\n  ) AS lowest_in_dept\nFROM employees;' },
+          { code: 'SELECT name, department, salary,\n  FIRST_VALUE(salary) OVER (\n    PARTITION BY department ORDER BY salary DESC\n  ) AS highest_in_dept,\n  LAST_VALUE(salary) OVER (\n    PARTITION BY department ORDER BY salary DESC\n    ROWS BETWEEN UNBOUNDED PRECEDING\n              AND UNBOUNDED FOLLOWING\n  ) AS lowest_in_dept\nFROM employees;',
+            result: { columns: ['name', 'department', 'salary', 'highest_in_dept', 'lowest_in_dept'], rows: [['Carol', 'HR', 7200, 7200, 4200], ['Eve', 'HR', 5800, 7200, 4200], ['Frank', 'HR', 4200, 7200, 4200], ['Alice', 'Sales', 6000, 6000, 4800], ['David', 'Sales', 4800, 6000, 4800]] } },
         ],
       },
       {
@@ -712,7 +741,8 @@ const GROUPS: Group[] = [
         descEn: 'Converts all characters in a string to uppercase or lowercase.',
         descAr: 'يحوّل جميع أحرف النص إلى حروف كبيرة أو صغيرة.',
         examples: [
-          { code: "SELECT UPPER('hello')  -- → 'HELLO'\nSELECT LOWER('WORLD')  -- → 'world'" },
+          { code: "SELECT UPPER('hello')  -- → 'HELLO'\nSELECT LOWER('WORLD')  -- → 'world'",
+            result: { columns: ["UPPER('hello')", "LOWER('WORLD')"], rows: [['HELLO', 'world']] } },
         ],
       },
       {
@@ -722,7 +752,8 @@ const GROUPS: Group[] = [
         descEn: 'Extracts N characters from the left or right end of a string.',
         descAr: 'يستخرج N حروف من بداية النص أو نهايته.',
         examples: [
-          { code: "SELECT LEFT('Hello World', 5)   -- → 'Hello'\nSELECT RIGHT('Hello World', 5)  -- → 'World'\n\n-- Extract area code\nSELECT LEFT(phone, 3) AS area_code FROM customers;" },
+          { code: "SELECT LEFT('Hello World', 5)   -- → 'Hello'\nSELECT RIGHT('Hello World', 5)  -- → 'World'\n\n-- Extract area code\nSELECT LEFT(phone, 3) AS area_code FROM customers;",
+            result: { columns: ["LEFT('Hello World',5)", "RIGHT('Hello World',5)"], rows: [['Hello', 'World']] } },
         ],
       },
       {
@@ -732,7 +763,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns the number of characters in a string.',
         descAr: 'يُرجع عدد الأحرف في النص.',
         examples: [
-          { code: "SELECT LENGTH('SQL')       -- → 3\nSELECT name, LENGTH(name) AS name_len\nFROM employees;" },
+          { code: "SELECT LENGTH('SQL')       -- → 3\nSELECT name, LENGTH(name) AS name_len\nFROM employees;",
+            result: { columns: ['name', 'name_len'], rows: [['Alice', 5], ['Bob', 3], ['Carol', 5], ['David', 5]] } },
         ],
       },
       {
@@ -742,7 +774,8 @@ const GROUPS: Group[] = [
         descEn: 'Extracts a portion of a string starting at a given position for a given length.',
         descAr: 'يستخرج جزءاً من النص بدءاً من موضع معين لطول معين.',
         examples: [
-          { code: "SELECT SUBSTRING('Hello World', 1, 5) -- → 'Hello'\nSELECT SUBSTR('Hello', 2)             -- → 'ello'" },
+          { code: "SELECT SUBSTRING('Hello World', 1, 5) -- → 'Hello'\nSELECT SUBSTR('Hello', 2)             -- → 'ello'",
+            result: { columns: ["SUBSTRING(1,5)", "SUBSTR(2)"], rows: [['Hello', 'ello']] } },
         ],
       },
       {
@@ -752,7 +785,8 @@ const GROUPS: Group[] = [
         descEn: 'Joins two or more strings together. The || operator is the SQL standard alternative.',
         descAr: 'يدمج نصّين أو أكثر معاً. عامل || هو البديل القياسي في SQL.',
         examples: [
-          { code: "SELECT CONCAT(first_name, ' ', last_name) AS full_name\nFROM employees;\n\n-- SQL standard:\nSELECT first_name || ' ' || last_name AS full_name\nFROM employees;" },
+          { code: "SELECT CONCAT(first_name, ' ', last_name) AS full_name\nFROM employees;\n\n-- SQL standard:\nSELECT first_name || ' ' || last_name AS full_name\nFROM employees;",
+            result: { columns: ['full_name'], rows: [['Alice Smith'], ['Bob Jones'], ['Carol Brown']] } },
         ],
       },
       {
@@ -762,7 +796,8 @@ const GROUPS: Group[] = [
         descEn: 'Removes leading and/or trailing whitespace (or specified characters) from a string.',
         descAr: 'يزيل المسافات البيضاء (أو أحرفاً محددة) من بداية و/أو نهاية النص.',
         examples: [
-          { code: "SELECT TRIM('  hello  ')  -- → 'hello'\nSELECT LTRIM(' hello')    -- → 'hello'\nSELECT RTRIM('hello ')    -- → 'hello'" },
+          { code: "SELECT TRIM('  hello  ')  -- → 'hello'\nSELECT LTRIM(' hello')    -- → 'hello'\nSELECT RTRIM('hello ')    -- → 'hello'",
+            result: { columns: ['TRIM', 'LTRIM', 'RTRIM'], rows: [['hello', 'hello', 'hello']] } },
         ],
       },
       {
@@ -772,7 +807,8 @@ const GROUPS: Group[] = [
         descEn: 'Replaces all occurrences of a substring within a string with another substring.',
         descAr: 'يستبدل كل تكرارات نص فرعي داخل نص بنص فرعي آخر.',
         examples: [
-          { code: "SELECT REPLACE('2024-01-15', '-', '/') -- → '2024/01/15'\n\nSELECT REPLACE(phone, ' ', '') AS clean_phone\nFROM customers;" },
+          { code: "SELECT REPLACE('2024-01-15', '-', '/') -- → '2024/01/15'\n\nSELECT REPLACE(phone, ' ', '') AS clean_phone\nFROM customers;",
+            result: { columns: ["REPLACE('-','/')"], rows: [['2024/01/15']] } },
         ],
       },
       {
@@ -782,7 +818,8 @@ const GROUPS: Group[] = [
         descEn: 'Pads a string on the left or right to a given length with a specified fill character.',
         descAr: 'يُحشو النص من اليسار أو اليمين بحرف محدد حتى يصل إلى الطول المطلوب.',
         examples: [
-          { code: "SELECT LPAD('42', 6, '0')    -- → '000042'\nSELECT RPAD('hello', 8, '.') -- → 'hello...'\n\nSELECT LPAD(id::TEXT, 8, '0') AS order_code\nFROM orders;" },
+          { code: "SELECT LPAD('42', 6, '0')    -- → '000042'\nSELECT RPAD('hello', 8, '.') -- → 'hello...'\n\nSELECT LPAD(id::TEXT, 8, '0') AS order_code\nFROM orders;",
+            result: { columns: ["LPAD('42',6,'0')", "RPAD('hello',8,'.')"], rows: [['000042', 'hello...']] } },
         ],
       },
       {
@@ -792,7 +829,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns the 1-based position of the first occurrence of a substring inside a string. Returns 0 if not found.',
         descAr: 'يُرجع موضع أول ظهور (يبدأ من 1) لنص فرعي داخل نص. يُرجع 0 إذا لم يُوجد.',
         examples: [
-          { code: "-- Standard SQL\nSELECT POSITION('@' IN 'user@example.com')  -- → 5\n\n-- SQL Server\nSELECT CHARINDEX('@', 'user@example.com')   -- → 5" },
+          { code: "-- Standard SQL\nSELECT POSITION('@' IN 'user@example.com')  -- → 5\n\n-- SQL Server\nSELECT CHARINDEX('@', 'user@example.com')   -- → 5",
+            result: { columns: ["POSITION('@')", "CHARINDEX('@')"], rows: [[5, 5]] } },
         ],
       },
       {
@@ -802,7 +840,8 @@ const GROUPS: Group[] = [
         descEn: 'Splits a string by a delimiter and returns the Nth part. SPLIT_PART is PostgreSQL; SUBSTRING_INDEX is MySQL.',
         descAr: 'يقسّم نصاً بفاصل ويُرجع الجزء رقم N.',
         examples: [
-          { code: "-- PostgreSQL\nSELECT SPLIT_PART('john.doe@email.com', '@', 1)  -- → 'john.doe'\nSELECT SPLIT_PART('john.doe@email.com', '@', 2)  -- → 'email.com'\n\n-- MySQL\nSELECT SUBSTRING_INDEX('a,b,c,d', ',', 2)        -- → 'a,b'" },
+          { code: "-- PostgreSQL\nSELECT SPLIT_PART('john.doe@email.com', '@', 1)  -- → 'john.doe'\nSELECT SPLIT_PART('john.doe@email.com', '@', 2)  -- → 'email.com'\n\n-- MySQL\nSELECT SUBSTRING_INDEX('a,b,c,d', ',', 2)        -- → 'a,b'",
+            result: { columns: ['SPLIT_PART part 1', 'SPLIT_PART part 2'], rows: [['john.doe', 'email.com']] } },
         ],
       },
       {
@@ -812,7 +851,8 @@ const GROUPS: Group[] = [
         descEn: 'REVERSE returns the characters of a string in reverse order. REPEAT repeats a string N times.',
         descAr: 'REVERSE يُرجع أحرف النص بترتيب معكوس. REPEAT يكرر نصاً N مرة.',
         examples: [
-          { code: "SELECT REVERSE('Hello')       -- → 'olleH'\nSELECT REPEAT('ab', 3)        -- → 'ababab'\nSELECT REPEAT('-', 20)        -- separator line" },
+          { code: "SELECT REVERSE('Hello')       -- → 'olleH'\nSELECT REPEAT('ab', 3)        -- → 'ababab'\nSELECT REPEAT('-', 20)        -- separator line",
+            result: { columns: ["REVERSE('Hello')", "REPEAT('ab',3)"], rows: [['olleH', 'ababab']] } },
         ],
       },
       {
@@ -822,7 +862,8 @@ const GROUPS: Group[] = [
         descEn: 'Matches a string against a regular expression pattern. More powerful than LIKE — supports character classes, repetition, and alternation.',
         descAr: 'يطابق نصاً مع نمط تعبير نمطي. أقوى من LIKE — يدعم فئات الأحرف والتكرار والتبديل.',
         examples: [
-          { code: "-- PostgreSQL: ~ operator\nSELECT name FROM employees\nWHERE name ~ '^A.*n$';    -- starts with A, ends with n\n\n-- Case-insensitive\nSELECT name FROM employees\nWHERE name ~* 'alice';\n\n-- MySQL / SQLite\nSELECT name FROM employees\nWHERE name REGEXP '^A.*n$';" },
+          { code: "-- PostgreSQL: ~ operator\nSELECT name FROM employees\nWHERE name ~ '^A.*n$';    -- starts with A, ends with n\n\n-- Case-insensitive\nSELECT name FROM employees\nWHERE name ~* 'alice';\n\n-- MySQL / SQLite\nSELECT name FROM employees\nWHERE name REGEXP '^A.*n$';",
+            result: { columns: ['name (^A.*n$)'], rows: [['Alan'], ['Adrian']] } },
         ],
       },
     ],
@@ -842,7 +883,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns the current date or the current date and time.',
         descAr: 'يُرجع التاريخ الحالي أو التاريخ والوقت الحاليين.',
         examples: [
-          { code: 'SELECT CURRENT_DATE;        -- date only\nSELECT CURRENT_TIMESTAMP;   -- date + time\nSELECT NOW();               -- date + time' },
+          { code: 'SELECT CURRENT_DATE;        -- date only\nSELECT CURRENT_TIMESTAMP;   -- date + time\nSELECT NOW();               -- date + time',
+            result: { columns: ['CURRENT_DATE', 'NOW()'], rows: [['2024-01-15', '2024-01-15 09:32:14']] } },
         ],
       },
       {
@@ -852,7 +894,8 @@ const GROUPS: Group[] = [
         descEn: 'Extracts a specific part (year, month, day, hour…) from a date or timestamp.',
         descAr: 'يستخرج جزءاً محدداً (سنة، شهر، يوم، ساعة…) من تاريخ أو طابع زمني.',
         examples: [
-          { code: "SELECT EXTRACT(YEAR  FROM hire_date) AS yr,\n       EXTRACT(MONTH FROM hire_date) AS mo,\n       EXTRACT(DOW   FROM hire_date) AS day_of_week\nFROM employees;\n\nSELECT DATE_PART('hour', created_at) AS hr\nFROM orders;" },
+          { code: "SELECT EXTRACT(YEAR  FROM hire_date) AS yr,\n       EXTRACT(MONTH FROM hire_date) AS mo,\n       EXTRACT(DOW   FROM hire_date) AS day_of_week\nFROM employees;\n\nSELECT DATE_PART('hour', created_at) AS hr\nFROM orders;",
+            result: { columns: ['yr', 'mo', 'day_of_week'], rows: [[2021, 3, 1], [2022, 7, 5], [2020, 11, 0]] } },
         ],
       },
       {
@@ -862,7 +905,8 @@ const GROUPS: Group[] = [
         descEn: 'Truncates a timestamp to the specified precision (month, year, week…), zeroing out smaller units.',
         descAr: 'يقتطع طابعاً زمنياً إلى الدقة المحددة (شهر، سنة، أسبوع…)، ويجعل الوحدات الأصغر صفراً.',
         examples: [
-          { code: "SELECT DATE_TRUNC('month', created_at) AS month_start,\n       COUNT(*) AS orders\nFROM orders\nGROUP BY DATE_TRUNC('month', created_at)\nORDER BY month_start;" },
+          { code: "SELECT DATE_TRUNC('month', created_at) AS month_start,\n       COUNT(*) AS orders\nFROM orders\nGROUP BY DATE_TRUNC('month', created_at)\nORDER BY month_start;",
+            result: { columns: ['month_start', 'orders'], rows: [['2024-01-01', 42], ['2024-02-01', 38], ['2024-03-01', 57], ['2024-04-01', 61]] } },
         ],
       },
       {
@@ -872,7 +916,8 @@ const GROUPS: Group[] = [
         descEn: 'Add or subtract intervals from dates. Subtract two dates to get the difference in days.',
         descAr: 'يُضيف أو يطرح فترات زمنية من التواريخ. طرح تاريخين يعطي الفرق بالأيام.',
         examples: [
-          { code: "-- Add 30 days\nSELECT hire_date + INTERVAL '30 days' FROM employees;\n\n-- Subtract 1 year\nSELECT NOW() - INTERVAL '1 year';\n\n-- Days between dates\nSELECT end_date - start_date AS duration_days\nFROM projects;" },
+          { code: "-- Add 30 days\nSELECT hire_date + INTERVAL '30 days' FROM employees;\n\n-- Subtract 1 year\nSELECT NOW() - INTERVAL '1 year';\n\n-- Days between dates\nSELECT end_date - start_date AS duration_days\nFROM projects;",
+            result: { columns: ['duration_days'], rows: [[90], [180], [45], [365]] } },
         ],
       },
       {
@@ -883,9 +928,11 @@ const GROUPS: Group[] = [
         descAr: 'DATEDIFF يحسب الفرق بين تاريخين. DATE_ADD يضيف فترة زمنية لتاريخ. كلاهما دوال MySQL / SQL Server.',
         examples: [
           { titleEn: 'MySQL', titleAr: 'MySQL',
-            code: "SELECT DATEDIFF('2024-12-31', '2024-01-01')    -- → 365\nSELECT DATE_ADD('2024-01-15', INTERVAL 3 MONTH) -- → 2024-04-15\nSELECT DATE_SUB(NOW(), INTERVAL 7 DAY);" },
+            code: "SELECT DATEDIFF('2024-12-31', '2024-01-01')    -- → 365\nSELECT DATE_ADD('2024-01-15', INTERVAL 3 MONTH) -- → 2024-04-15\nSELECT DATE_SUB(NOW(), INTERVAL 7 DAY);",
+            result: { columns: ['DATEDIFF', 'DATE_ADD +3M'], rows: [[365, '2024-04-15']] } },
           { titleEn: 'SQL Server', titleAr: 'SQL Server',
-            code: "SELECT DATEDIFF(DAY, '2024-01-01', '2024-12-31')  -- → 365\nSELECT DATEADD(MONTH, 3, '2024-01-15')            -- → 2024-04-15" },
+            code: "SELECT DATEDIFF(DAY, '2024-01-01', '2024-12-31')  -- → 365\nSELECT DATEADD(MONTH, 3, '2024-01-15')            -- → 2024-04-15",
+            result: { columns: ['DATEDIFF', 'DATEADD +3M'], rows: [[365, '2024-04-15']] } },
         ],
       },
       {
@@ -895,7 +942,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns the interval between two timestamps expressed in years, months, and days. Used to compute age or tenure.',
         descAr: 'يُرجع الفترة بين طابعين زمنيين معبّراً عنها بالسنوات والأشهر والأيام. يُستخدم لحساب العمر أو مدة الخدمة.',
         examples: [
-          { code: "SELECT AGE(birth_date) AS age FROM employees;\n-- → '32 years 4 months 12 days'\n\nSELECT AGE('2024-12-31', '2020-06-15');\n-- → '4 years 6 months 16 days'" },
+          { code: "SELECT AGE(birth_date) AS age FROM employees;\n-- → '32 years 4 months 12 days'\n\nSELECT AGE('2024-12-31', '2020-06-15');\n-- → '4 years 6 months 16 days'",
+            result: { columns: ['age'], rows: [['32 years 4 months 12 days'], ['28 years 1 month 5 days'], ['4 years 6 months 16 days']] } },
         ],
       },
       {
@@ -905,7 +953,8 @@ const GROUPS: Group[] = [
         descEn: 'SQLite\'s date formatting function. Formats a date/time value using format codes similar to C\'s strftime.',
         descAr: 'دالة تنسيق التاريخ في SQLite. تُنسّق قيمة تاريخ/وقت باستخدام رموز تنسيق.',
         examples: [
-          { code: "SELECT STRFTIME('%Y-%m-%d', 'now')       -- → '2024-01-15'\nSELECT STRFTIME('%d/%m/%Y', hire_date)   -- → '15/01/2024'\nSELECT STRFTIME('%Y', hire_date) AS yr\nFROM employees;" },
+          { code: "SELECT STRFTIME('%Y-%m-%d', 'now')       -- → '2024-01-15'\nSELECT STRFTIME('%d/%m/%Y', hire_date)   -- → '15/01/2024'\nSELECT STRFTIME('%Y', hire_date) AS yr\nFROM employees;",
+            result: { columns: ['yr'], rows: [['2021'], ['2022'], ['2020']] } },
         ],
       },
       {
@@ -915,7 +964,8 @@ const GROUPS: Group[] = [
         descEn: 'TO_CHAR formats a date or number as a string using a format mask. TO_DATE parses a string into a date.',
         descAr: 'TO_CHAR يُنسّق تاريخاً أو رقماً كنص باستخدام قالب تنسيق. TO_DATE يحوّل نصاً إلى تاريخ.',
         examples: [
-          { code: "SELECT TO_CHAR(hire_date, 'DD Mon YYYY')  -- → '15 Jan 2024'\nFROM employees;\n\nSELECT TO_CHAR(salary, 'FM999,999.00')    -- → '6,000.00'\nFROM employees;\n\nSELECT TO_DATE('15-01-2024', 'DD-MM-YYYY');" },
+          { code: "SELECT TO_CHAR(hire_date, 'DD Mon YYYY')  -- → '15 Jan 2024'\nFROM employees;\n\nSELECT TO_CHAR(salary, 'FM999,999.00')    -- → '6,000.00'\nFROM employees;\n\nSELECT TO_DATE('15-01-2024', 'DD-MM-YYYY');",
+            result: { columns: ['TO_CHAR (date)', 'TO_CHAR (salary)'], rows: [['15 Mar 2021', '6,000.00'], ['01 Jul 2022', '4,500.00'], ['22 Nov 2020', '7,200.00']] } },
         ],
       },
     ],
@@ -935,7 +985,8 @@ const GROUPS: Group[] = [
         descEn: 'ROUND rounds a number to N decimal places. TRUNC truncates (cuts off) without rounding.',
         descAr: 'ROUND يقرّب رقماً إلى N منزلة عشرية. TRUNC يقتطع دون تقريب.',
         examples: [
-          { code: 'SELECT ROUND(3.14159, 2)   -- → 3.14\nSELECT ROUND(3.567, 0)    -- → 4\nSELECT TRUNC(3.9)         -- → 3' },
+          { code: 'SELECT ROUND(3.14159, 2)   -- → 3.14\nSELECT ROUND(3.567, 0)    -- → 4\nSELECT TRUNC(3.9)         -- → 3',
+            result: { columns: ['ROUND(3.14159,2)', 'ROUND(3.567,0)', 'TRUNC(3.9)'], rows: [[3.14, 4, 3]] } },
         ],
       },
       {
@@ -945,7 +996,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns the absolute (positive) value of a number.',
         descAr: 'يُرجع القيمة المطلقة (الموجبة) لرقم.',
         examples: [
-          { code: 'SELECT ABS(-42)   -- → 42\nSELECT ABS(42)    -- → 42\n\nSELECT ABS(price - cost) AS margin FROM products;' },
+          { code: 'SELECT ABS(-42)   -- → 42\nSELECT ABS(42)    -- → 42\n\nSELECT ABS(price - cost) AS margin FROM products;',
+            result: { columns: ['ABS(-42)', 'ABS(42)'], rows: [[42, 42]] } },
         ],
       },
       {
@@ -955,7 +1007,8 @@ const GROUPS: Group[] = [
         descEn: 'CEIL rounds up to the nearest integer; FLOOR rounds down.',
         descAr: 'CEIL يقرّب إلى أكبر عدد صحيح؛ FLOOR يقرّب إلى أصغر عدد صحيح.',
         examples: [
-          { code: 'SELECT CEIL(4.1)    -- → 5\nSELECT CEIL(-4.9)   -- → -4\nSELECT FLOOR(4.9)   -- → 4\nSELECT FLOOR(-4.1)  -- → -5' },
+          { code: 'SELECT CEIL(4.1)    -- → 5\nSELECT CEIL(-4.9)   -- → -4\nSELECT FLOOR(4.9)   -- → 4\nSELECT FLOOR(-4.1)  -- → -5',
+            result: { columns: ['CEIL(4.1)', 'CEIL(-4.9)', 'FLOOR(4.9)', 'FLOOR(-4.1)'], rows: [[5, -4, 4, -5]] } },
         ],
       },
       {
@@ -965,7 +1018,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns the remainder after division. Useful for even/odd checks and cyclic operations.',
         descAr: 'يُرجع باقي القسمة. مفيد لفحص الزوجية والعمليات الدورية.',
         examples: [
-          { code: 'SELECT MOD(10, 3)     -- → 1\nSELECT 10 % 3         -- → 1\n\n-- Even-numbered rows only\nSELECT * FROM employees WHERE MOD(id, 2) = 0;' },
+          { code: 'SELECT MOD(10, 3)     -- → 1\nSELECT 10 % 3         -- → 1\n\n-- Even-numbered rows only\nSELECT * FROM employees WHERE MOD(id, 2) = 0;',
+            result: { columns: ['MOD(10,3)', '10 % 3'], rows: [[1, 1]] } },
         ],
       },
       {
@@ -975,7 +1029,8 @@ const GROUPS: Group[] = [
         descEn: 'POWER raises a number to an exponent. SQRT computes the square root.',
         descAr: 'POWER يرفع رقماً إلى أس. SQRT يحسب الجذر التربيعي.',
         examples: [
-          { code: 'SELECT POWER(2, 10)   -- → 1024\nSELECT SQRT(144)     -- → 12\n\n-- Euclidean distance\nSELECT SQRT(POWER(x2-x1,2) + POWER(y2-y1,2)) AS dist\nFROM coordinates;' },
+          { code: 'SELECT POWER(2, 10)   -- → 1024\nSELECT SQRT(144)     -- → 12\n\n-- Euclidean distance\nSELECT SQRT(POWER(x2-x1,2) + POWER(y2-y1,2)) AS dist\nFROM coordinates;',
+            result: { columns: ['POWER(2,10)', 'SQRT(144)'], rows: [[1024, 12]] } },
         ],
       },
       {
@@ -985,7 +1040,8 @@ const GROUPS: Group[] = [
         descEn: 'LOG computes base-10 (or custom-base) logarithm. LN is the natural logarithm (base e). EXP raises e to a power.',
         descAr: 'LOG يحسب لوغاريتم الأساس 10 أو أساس مخصص. LN هو اللوغاريتم الطبيعي. EXP يرفع e إلى قوة.',
         examples: [
-          { code: "SELECT LOG(100)        -- → 2  (base 10)\nSELECT LOG(2, 1024)    -- → 10 (log base 2)\nSELECT LN(EXP(1))      -- → 1  (natural log)\nSELECT EXP(1)          -- → 2.718... (Euler's e)" },
+          { code: "SELECT LOG(100)        -- → 2  (base 10)\nSELECT LOG(2, 1024)    -- → 10 (log base 2)\nSELECT LN(EXP(1))      -- → 1  (natural log)\nSELECT EXP(1)          -- → 2.718... (Euler's e)",
+            result: { columns: ['LOG(100)', 'LOG(2,1024)', 'LN(EXP(1))', 'EXP(1)'], rows: [[2, 10, 1, '2.718...']] } },
         ],
       },
       {
@@ -995,7 +1051,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns -1 if the number is negative, 0 if zero, and 1 if positive.',
         descAr: 'يُرجع -1 إذا كان الرقم سالباً، 0 إذا كان صفراً، و1 إذا كان موجباً.',
         examples: [
-          { code: "SELECT SIGN(-42)   -- → -1\nSELECT SIGN(0)     -- → 0\nSELECT SIGN(99)    -- → 1\n\nSELECT product,\n  CASE SIGN(revenue - cost)\n    WHEN  1 THEN 'Profit'\n    WHEN  0 THEN 'Break-even'\n    WHEN -1 THEN 'Loss'\n  END AS result\nFROM products;" },
+          { code: "SELECT SIGN(-42)   -- → -1\nSELECT SIGN(0)     -- → 0\nSELECT SIGN(99)    -- → 1\n\nSELECT product,\n  CASE SIGN(revenue - cost)\n    WHEN  1 THEN 'Profit'\n    WHEN  0 THEN 'Break-even'\n    WHEN -1 THEN 'Loss'\n  END AS result\nFROM products;",
+            result: { columns: ['SIGN(-42)', 'SIGN(0)', 'SIGN(99)'], rows: [[-1, 0, 1]] } },
         ],
       },
       {
@@ -1005,7 +1062,8 @@ const GROUPS: Group[] = [
         descEn: 'Generates a random floating-point number between 0 and 1. Use with ORDER BY to shuffle rows.',
         descAr: 'يولّد رقماً عشرياً عشوائياً بين 0 و1. استخدمه مع ORDER BY للترتيب العشوائي.',
         examples: [
-          { code: '-- PostgreSQL\nSELECT RANDOM()               -- → 0.573...\nSELECT FLOOR(RANDOM() * 100)  -- random integer 0–99\n\n-- MySQL\nSELECT RAND()\n\n-- Shuffle rows\nSELECT * FROM employees ORDER BY RANDOM() LIMIT 5;' },
+          { code: '-- PostgreSQL\nSELECT RANDOM()               -- → 0.573...\nSELECT FLOOR(RANDOM() * 100)  -- random integer 0–99\n\n-- MySQL\nSELECT RAND()\n\n-- Shuffle rows\nSELECT * FROM employees ORDER BY RANDOM() LIMIT 5;',
+            result: { columns: ['RANDOM()', 'FLOOR(RANDOM()*100)'], rows: [['0.573...', 57]] } },
         ],
       },
       {
@@ -1015,7 +1073,8 @@ const GROUPS: Group[] = [
         descEn: 'Converts a value from one data type to another. :: is the PostgreSQL shorthand.',
         descAr: 'يحوّل قيمة من نوع بيانات إلى آخر. :: هو الصياغة المختصرة في PostgreSQL.',
         examples: [
-          { code: "-- Standard SQL\nSELECT CAST('2024-01-15' AS DATE);\nSELECT CAST(price AS INTEGER);\nSELECT CAST(id AS VARCHAR);\n\n-- PostgreSQL shorthand\nSELECT '2024-01-15'::DATE;\nSELECT price::INTEGER;" },
+          { code: "-- Standard SQL\nSELECT CAST('2024-01-15' AS DATE);\nSELECT CAST(price AS INTEGER);\nSELECT CAST(id AS VARCHAR);\n\n-- PostgreSQL shorthand\nSELECT '2024-01-15'::DATE;\nSELECT price::INTEGER;",
+            result: { columns: ['CAST(date)', 'CAST(price→INT)', 'CAST(id→VARCHAR)'], rows: [['2024-01-15', 45, '42']] } },
         ],
       },
     ],
@@ -1035,7 +1094,8 @@ const GROUPS: Group[] = [
         descEn: 'Defines a new table with columns, data types, and constraints.',
         descAr: 'يعرّف جدولاً جديداً مع الأعمدة وأنواع البيانات والقيود.',
         examples: [
-          { code: 'CREATE TABLE employees (\n  id        INTEGER      PRIMARY KEY,\n  name      VARCHAR(100) NOT NULL,\n  salary    DECIMAL(10,2) DEFAULT 0,\n  dept_id   INTEGER      REFERENCES departments(id),\n  hire_date DATE\n);' },
+          { code: 'CREATE TABLE employees (\n  id        INTEGER      PRIMARY KEY,\n  name      VARCHAR(100) NOT NULL,\n  salary    DECIMAL(10,2) DEFAULT 0,\n  dept_id   INTEGER      REFERENCES departments(id),\n  hire_date DATE\n);',
+            result: { columns: ['Status'], rows: [['CREATE TABLE']] } },
         ],
       },
       {
@@ -1045,7 +1105,8 @@ const GROUPS: Group[] = [
         descEn: 'Rules enforced on columns to maintain data integrity: PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, NOT NULL, DEFAULT.',
         descAr: 'قواعد مفروضة على الأعمدة للحفاظ على سلامة البيانات.',
         examples: [
-          { code: "CREATE TABLE orders (\n  id          INTEGER      PRIMARY KEY,\n  customer_id INTEGER      NOT NULL\n                           REFERENCES customers(id),\n  status      VARCHAR(20)  NOT NULL\n                           DEFAULT 'pending'\n                           CHECK (status IN ('pending','shipped','delivered')),\n  total       DECIMAL(10,2) CHECK (total >= 0),\n  email       VARCHAR(255) UNIQUE\n);" },
+          { code: "CREATE TABLE orders (\n  id          INTEGER      PRIMARY KEY,\n  customer_id INTEGER      NOT NULL\n                           REFERENCES customers(id),\n  status      VARCHAR(20)  NOT NULL\n                           DEFAULT 'pending'\n                           CHECK (status IN ('pending','shipped','delivered')),\n  total       DECIMAL(10,2) CHECK (total >= 0),\n  email       VARCHAR(255) UNIQUE\n);",
+            result: { columns: ['Status'], rows: [['CREATE TABLE']] } },
         ],
       },
       {
@@ -1055,7 +1116,8 @@ const GROUPS: Group[] = [
         descEn: 'Modifies an existing table: add/drop/rename columns or rename the table itself.',
         descAr: 'يعدّل جدولاً موجوداً: يضيف/يحذف/يعيد تسمية أعمدة أو يعيد تسمية الجدول نفسه.',
         examples: [
-          { code: '-- Add a column\nALTER TABLE employees ADD COLUMN email VARCHAR(255);\n\n-- Drop a column\nALTER TABLE employees DROP COLUMN email;\n\n-- Rename a column\nALTER TABLE employees RENAME COLUMN salary TO base_salary;' },
+          { code: '-- Add a column\nALTER TABLE employees ADD COLUMN email VARCHAR(255);\n\n-- Drop a column\nALTER TABLE employees DROP COLUMN email;\n\n-- Rename a column\nALTER TABLE employees RENAME COLUMN salary TO base_salary;',
+            result: { columns: ['Status'], rows: [['ALTER TABLE']] } },
         ],
       },
       {
@@ -1065,7 +1127,8 @@ const GROUPS: Group[] = [
         descEn: 'Permanently removes a table and all its data. IF EXISTS prevents an error if the table does not exist.',
         descAr: 'يحذف جدولاً وكل بياناته بشكل دائم. IF EXISTS يمنع الخطأ إذا لم يكن الجدول موجوداً.',
         examples: [
-          { code: 'DROP TABLE IF EXISTS temp_results;' },
+          { code: 'DROP TABLE IF EXISTS temp_results;',
+            result: { columns: ['Status'], rows: [['DROP TABLE']] } },
         ],
       },
       {
@@ -1075,7 +1138,8 @@ const GROUPS: Group[] = [
         descEn: 'Creates an index to speed up queries on frequently searched columns.',
         descAr: 'ينشئ فهرساً لتسريع الاستعلامات على الأعمدة الأكثر بحثاً.',
         examples: [
-          { code: 'CREATE INDEX idx_emp_dept\n  ON employees(dept_id);\n\nCREATE UNIQUE INDEX idx_emp_email\n  ON employees(email);' },
+          { code: 'CREATE INDEX idx_emp_dept\n  ON employees(dept_id);\n\nCREATE UNIQUE INDEX idx_emp_email\n  ON employees(email);',
+            result: { columns: ['Status'], rows: [['CREATE INDEX']] } },
         ],
       },
       {
@@ -1085,7 +1149,8 @@ const GROUPS: Group[] = [
         descEn: 'Generates an auto-incrementing series of numbers. Used to produce unique IDs.',
         descAr: 'يولّد سلسلة أرقام تتزايد تلقائياً. يُستخدم لإنتاج معرّفات فريدة.',
         examples: [
-          { code: "CREATE SEQUENCE order_id_seq\n  START WITH 1000\n  INCREMENT BY 1;\n\n-- Use it\nINSERT INTO orders (id, customer_id)\nVALUES (NEXTVAL('order_id_seq'), 5);\n\nSELECT CURRVAL('order_id_seq');" },
+          { code: "CREATE SEQUENCE order_id_seq\n  START WITH 1000\n  INCREMENT BY 1;\n\n-- Use it\nINSERT INTO orders (id, customer_id)\nVALUES (NEXTVAL('order_id_seq'), 5);\n\nSELECT CURRVAL('order_id_seq');",
+            result: { columns: ['currval'], rows: [[1000]] } },
         ],
       },
     ],
@@ -1105,7 +1170,8 @@ const GROUPS: Group[] = [
         descEn: 'Adds one or more rows to a table.',
         descAr: 'يضيف صفاً أو أكثر إلى جدول.',
         examples: [
-          { code: "-- Single row\nINSERT INTO employees (name, salary, dept_id)\nVALUES ('Alice', 6000, 2);\n\n-- Multiple rows\nINSERT INTO employees (name, salary)\nVALUES ('Bob', 5000),\n       ('Carol', 7000);\n\n-- Insert from SELECT\nINSERT INTO archive_orders\nSELECT * FROM orders WHERE status = 'closed';" },
+          { code: "-- Single row\nINSERT INTO employees (name, salary, dept_id)\nVALUES ('Alice', 6000, 2);\n\n-- Multiple rows\nINSERT INTO employees (name, salary)\nVALUES ('Bob', 5000),\n       ('Carol', 7000);\n\n-- Insert from SELECT\nINSERT INTO archive_orders\nSELECT * FROM orders WHERE status = 'closed';",
+            result: { columns: ['Rows Affected'], rows: [[1], [2]] } },
         ],
       },
       {
@@ -1115,7 +1181,8 @@ const GROUPS: Group[] = [
         descEn: 'Modifies existing rows. Always use WHERE to avoid updating every row in the table.',
         descAr: 'يعدّل الصفوف الموجودة. استخدم WHERE دائماً لتجنب تحديث كل صفوف الجدول.',
         examples: [
-          { code: "UPDATE employees\nSET salary  = salary * 1.1,\n    dept_id = 3\nWHERE department = 'Sales'\n  AND salary < 5000;" },
+          { code: "UPDATE employees\nSET salary  = salary * 1.1,\n    dept_id = 3\nWHERE department = 'Sales'\n  AND salary < 5000;",
+            result: { columns: ['Rows Affected'], rows: [[3]] } },
         ],
       },
       {
@@ -1126,9 +1193,11 @@ const GROUPS: Group[] = [
         descAr: 'يُحدّث صفوفاً في جدول بناءً على قيم من جدول آخر.',
         examples: [
           { titleEn: 'MySQL / SQL Server', titleAr: 'MySQL / SQL Server',
-            code: "UPDATE employees e\nJOIN departments d ON e.dept_id = d.id\nSET e.location = d.location\nWHERE d.name = 'Engineering';" },
+            code: "UPDATE employees e\nJOIN departments d ON e.dept_id = d.id\nSET e.location = d.location\nWHERE d.name = 'Engineering';",
+            result: { columns: ['Rows Affected'], rows: [[5]] } },
           { titleEn: 'PostgreSQL (UPDATE FROM)', titleAr: 'PostgreSQL (UPDATE FROM)',
-            code: "UPDATE employees e\nSET location = d.location\nFROM departments d\nWHERE e.dept_id = d.id\n  AND d.name = 'Engineering';" },
+            code: "UPDATE employees e\nSET location = d.location\nFROM departments d\nWHERE e.dept_id = d.id\n  AND d.name = 'Engineering';",
+            result: { columns: ['Rows Affected'], rows: [[5]] } },
         ],
       },
       {
@@ -1138,7 +1207,8 @@ const GROUPS: Group[] = [
         descEn: 'Removes rows from a table. Without WHERE, all rows are deleted — always double-check your condition.',
         descAr: 'يحذف صفوفاً من جدول. بدون WHERE تُحذف كل الصفوف — تحقق دائماً من الشرط.',
         examples: [
-          { code: "DELETE FROM employees\nWHERE id = 42;\n\nDELETE FROM orders\nWHERE status = 'cancelled'\n  AND created_at < '2023-01-01';" },
+          { code: "DELETE FROM employees\nWHERE id = 42;\n\nDELETE FROM orders\nWHERE status = 'cancelled'\n  AND created_at < '2023-01-01';",
+            result: { columns: ['Rows Affected'], rows: [[1], [14]] } },
         ],
       },
       {
@@ -1148,7 +1218,8 @@ const GROUPS: Group[] = [
         descEn: 'Removes all rows from a table instantly. Much faster than DELETE with no WHERE. Cannot be rolled back in most engines.',
         descAr: 'يحذف كل صفوف الجدول فوراً. أسرع بكثير من DELETE بدون WHERE. لا يمكن التراجع عنه في معظم المحركات.',
         examples: [
-          { code: 'TRUNCATE TABLE logs;\n\n-- PostgreSQL: restart identity columns\nTRUNCATE TABLE orders RESTART IDENTITY;\n\n-- Truncate multiple tables\nTRUNCATE TABLE orders, order_items;' },
+          { code: 'TRUNCATE TABLE logs;\n\n-- PostgreSQL: restart identity columns\nTRUNCATE TABLE orders RESTART IDENTITY;\n\n-- Truncate multiple tables\nTRUNCATE TABLE orders, order_items;',
+            result: { columns: ['Status'], rows: [['TRUNCATE TABLE']] } },
         ],
       },
       {
@@ -1159,9 +1230,11 @@ const GROUPS: Group[] = [
         descAr: 'يُدرج صفاً؛ إذا حدث تعارض (مفتاح مكرر) يُحدّث الصف الموجود عوضاً عن ذلك.',
         examples: [
           { titleEn: 'PostgreSQL', titleAr: 'PostgreSQL',
-            code: "INSERT INTO products (id, name, price)\nVALUES (1, 'Widget', 9.99)\nON CONFLICT (id)\nDO UPDATE SET\n  name  = EXCLUDED.name,\n  price = EXCLUDED.price;" },
+            code: "INSERT INTO products (id, name, price)\nVALUES (1, 'Widget', 9.99)\nON CONFLICT (id)\nDO UPDATE SET\n  name  = EXCLUDED.name,\n  price = EXCLUDED.price;",
+            result: { columns: ['Rows Affected'], rows: [[1]] } },
           { titleEn: 'SQLite', titleAr: 'SQLite',
-            code: "INSERT OR REPLACE INTO products (id, name, price)\nVALUES (1, 'Widget', 9.99);" },
+            code: "INSERT OR REPLACE INTO products (id, name, price)\nVALUES (1, 'Widget', 9.99);",
+            result: { columns: ['Rows Affected'], rows: [[1]] } },
         ],
       },
       {
@@ -1171,7 +1244,8 @@ const GROUPS: Group[] = [
         descEn: 'Synchronises a target table with a source in one statement: INSERT when no match, UPDATE when match, optionally DELETE.',
         descAr: 'يزامن جدول هدف مع مصدر في جملة واحدة: INSERT عند عدم التطابق، UPDATE عند التطابق.',
         examples: [
-          { code: 'MERGE INTO inventory AS target\nUSING shipment    AS source\n  ON target.product_id = source.product_id\nWHEN MATCHED THEN\n  UPDATE SET quantity = target.quantity + source.quantity\nWHEN NOT MATCHED THEN\n  INSERT (product_id, quantity)\n  VALUES (source.product_id, source.quantity);' },
+          { code: 'MERGE INTO inventory AS target\nUSING shipment    AS source\n  ON target.product_id = source.product_id\nWHEN MATCHED THEN\n  UPDATE SET quantity = target.quantity + source.quantity\nWHEN NOT MATCHED THEN\n  INSERT (product_id, quantity)\n  VALUES (source.product_id, source.quantity);',
+            result: { columns: ['Rows Updated', 'Rows Inserted'], rows: [[7, 3]] } },
         ],
       },
     ],
@@ -1191,7 +1265,8 @@ const GROUPS: Group[] = [
         descEn: 'BEGIN starts a transaction block. COMMIT saves all changes made since BEGIN permanently.',
         descAr: 'BEGIN يبدأ كتلة معاملة. COMMIT يحفظ كل التغييرات المُجراة منذ BEGIN بشكل دائم.',
         examples: [
-          { code: 'BEGIN;\n  UPDATE accounts\n    SET balance = balance - 500\n    WHERE id = 1;\n  UPDATE accounts\n    SET balance = balance + 500\n    WHERE id = 2;\nCOMMIT;' },
+          { code: 'BEGIN;\n  UPDATE accounts\n    SET balance = balance - 500\n    WHERE id = 1;\n  UPDATE accounts\n    SET balance = balance + 500\n    WHERE id = 2;\nCOMMIT;',
+            result: { columns: ['Status'], rows: [['COMMIT — 2 rows updated']] } },
         ],
       },
       {
@@ -1201,7 +1276,8 @@ const GROUPS: Group[] = [
         descEn: 'Undoes all changes made in the current transaction, reverting to the state before BEGIN.',
         descAr: 'يتراجع عن كل التغييرات في المعاملة الحالية، ويعود إلى الحالة قبل BEGIN.',
         examples: [
-          { code: 'BEGIN;\n  DELETE FROM orders WHERE customer_id = 99;\n  -- Oops, wrong customer!\nROLLBACK;   -- nothing was deleted' },
+          { code: 'BEGIN;\n  DELETE FROM orders WHERE customer_id = 99;\n  -- Oops, wrong customer!\nROLLBACK;   -- nothing was deleted',
+            result: { columns: ['Status'], rows: [['ROLLBACK — 0 rows affected']] } },
         ],
       },
       {
@@ -1211,7 +1287,8 @@ const GROUPS: Group[] = [
         descEn: 'Creates a named checkpoint inside a transaction so you can roll back to that point without cancelling the whole transaction.',
         descAr: 'ينشئ نقطة تفتيش مسمّاة داخل المعاملة لتتمكن من التراجع إليها دون إلغاء المعاملة كلها.',
         examples: [
-          { code: "BEGIN;\n  INSERT INTO logs VALUES ('step 1');\n  SAVEPOINT step1;\n  INSERT INTO logs VALUES ('step 2');\n  ROLLBACK TO SAVEPOINT step1;\n  -- step 2 undone, step 1 still there\nCOMMIT;" },
+          { code: "BEGIN;\n  INSERT INTO logs VALUES ('step 1');\n  SAVEPOINT step1;\n  INSERT INTO logs VALUES ('step 2');\n  ROLLBACK TO SAVEPOINT step1;\n  -- step 2 undone, step 1 still there\nCOMMIT;",
+            result: { columns: ['Status'], rows: [['SAVEPOINT created — step 2 rolled back, step 1 committed']] } },
         ],
       },
       {
@@ -1222,7 +1299,8 @@ const GROUPS: Group[] = [
         descAr: 'يتحكم في كيفية/متى تكون التغييرات مرئية للمعاملات المتزامنة. العزل الأعلى = أخطاء أقل لكن أداء أبطأ.',
         examples: [
           { titleEn: '4 levels — least to most strict', titleAr: '4 مستويات — من الأقل إلى الأكثر صرامة',
-            code: "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n-- Dirty reads allowed (fastest, least safe)\n\nSET TRANSACTION ISOLATION LEVEL READ COMMITTED;\n-- Default in most DBs. No dirty reads.\n\nSET TRANSACTION ISOLATION LEVEL REPEATABLE READ;\n-- Same row read twice = same result.\n\nSET TRANSACTION ISOLATION LEVEL SERIALIZABLE;\n-- Fully isolated (safest, slowest)." },
+            code: "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n-- Dirty reads allowed (fastest, least safe)\n\nSET TRANSACTION ISOLATION LEVEL READ COMMITTED;\n-- Default in most DBs. No dirty reads.\n\nSET TRANSACTION ISOLATION LEVEL REPEATABLE READ;\n-- Same row read twice = same result.\n\nSET TRANSACTION ISOLATION LEVEL SERIALIZABLE;\n-- Fully isolated (safest, slowest).",
+            result: { columns: ['Level', 'Dirty Read', 'Non-repeatable', 'Phantom'], rows: [['READ UNCOMMITTED', 'Yes', 'Yes', 'Yes'], ['READ COMMITTED', 'No', 'Yes', 'Yes'], ['REPEATABLE READ', 'No', 'No', 'Yes'], ['SERIALIZABLE', 'No', 'No', 'No']] } },
         ],
       },
     ],
@@ -1242,7 +1320,8 @@ const GROUPS: Group[] = [
         descEn: 'A view is a saved query that acts like a virtual table. It does not store data — it reruns the query each time.',
         descAr: 'المنظور (View) هو استعلام محفوظ يعمل كجدول افتراضي. لا يخزن بيانات — يُعيد تشغيل الاستعلام في كل مرة.',
         examples: [
-          { code: "CREATE VIEW active_employees AS\n  SELECT * FROM employees\n  WHERE status = 'active';\n\n-- Use it like a table\nSELECT * FROM active_employees\nWHERE department = 'IT';\n\nDROP VIEW IF EXISTS active_employees;" },
+          { code: "CREATE VIEW active_employees AS\n  SELECT * FROM employees\n  WHERE status = 'active';\n\n-- Use it like a table\nSELECT * FROM active_employees\nWHERE department = 'IT';\n\nDROP VIEW IF EXISTS active_employees;",
+            result: { columns: ['id', 'name', 'department', 'salary'], rows: [[2, 'Bob', 'IT', 4500], [8, 'Grace', 'IT', 8100], [11, 'Ian', 'IT', 6700]] } },
         ],
       },
       {
@@ -1252,7 +1331,8 @@ const GROUPS: Group[] = [
         descEn: 'Like a regular view but stores the query result physically on disk. Must be refreshed manually. Much faster to query for expensive computations.',
         descAr: 'مثل المنظور العادي لكنه يخزن نتيجة الاستعلام فيزيائياً على القرص. يجب تحديثه يدوياً.',
         examples: [
-          { code: "CREATE MATERIALIZED VIEW monthly_revenue AS\n  SELECT DATE_TRUNC('month', order_date) AS month,\n         SUM(total) AS revenue\n  FROM orders\n  GROUP BY 1;\n\n-- Refresh when data changes\nREFRESH MATERIALIZED VIEW monthly_revenue;\n\nSELECT * FROM monthly_revenue ORDER BY month;" },
+          { code: "CREATE MATERIALIZED VIEW monthly_revenue AS\n  SELECT DATE_TRUNC('month', order_date) AS month,\n         SUM(total) AS revenue\n  FROM orders\n  GROUP BY 1;\n\n-- Refresh when data changes\nREFRESH MATERIALIZED VIEW monthly_revenue;\n\nSELECT * FROM monthly_revenue ORDER BY month;",
+            result: { columns: ['month', 'revenue'], rows: [['2024-01-01', 42500], ['2024-02-01', 38200], ['2024-03-01', 57800], ['2024-04-01', 61100]] } },
         ],
       },
       {
@@ -1262,7 +1342,8 @@ const GROUPS: Group[] = [
         descEn: 'Shows the execution plan for a query without running it. EXPLAIN ANALYZE actually runs it and shows real timings.',
         descAr: 'يُظهر خطة تنفيذ الاستعلام دون تشغيله. EXPLAIN ANALYZE يُشغّله فعلياً ويُظهر الأوقات الحقيقية.',
         examples: [
-          { code: 'EXPLAIN\nSELECT * FROM employees WHERE dept_id = 2;\n\nEXPLAIN ANALYZE\nSELECT * FROM orders WHERE total > 1000;' },
+          { code: 'EXPLAIN\nSELECT * FROM employees WHERE dept_id = 2;\n\nEXPLAIN ANALYZE\nSELECT * FROM orders WHERE total > 1000;',
+            result: { columns: ['QUERY PLAN'], rows: [['Seq Scan on employees  (cost=0.00..1.12 rows=3 width=...)'], ['  Filter: (dept_id = 2)'], ['Planning Time: 0.05 ms'], ['Execution Time: 0.12 ms']] } },
         ],
       },
       {
@@ -1272,7 +1353,8 @@ const GROUPS: Group[] = [
         descEn: 'PostgreSQL function that generates a set of rows from start to stop with an optional step. Useful for date ranges and test data.',
         descAr: 'دالة PostgreSQL تولّد مجموعة صفوف من البداية إلى النهاية مع خطوة اختيارية.',
         examples: [
-          { code: "-- Numbers 1 to 10\nSELECT * FROM GENERATE_SERIES(1, 10);\n\n-- Every day in January 2024\nSELECT day::DATE\nFROM GENERATE_SERIES(\n  '2024-01-01'::DATE,\n  '2024-01-31'::DATE,\n  INTERVAL '1 day'\n) AS t(day);" },
+          { code: "-- Numbers 1 to 10\nSELECT * FROM GENERATE_SERIES(1, 10);\n\n-- Every day in January 2024\nSELECT day::DATE\nFROM GENERATE_SERIES(\n  '2024-01-01'::DATE,\n  '2024-01-31'::DATE,\n  INTERVAL '1 day'\n) AS t(day);",
+            result: { columns: ['generate_series'], rows: [[1], [2], [3], ['...'], [10]] } },
         ],
       },
     ],
@@ -1292,7 +1374,8 @@ const GROUPS: Group[] = [
         descEn: 'GRANT gives a user or role permission on a database object. REVOKE removes that permission.',
         descAr: 'GRANT يمنح مستخدماً أو دوراً صلاحية على كائن قاعدة بيانات. REVOKE يسحب تلك الصلاحية.',
         examples: [
-          { code: "GRANT SELECT ON employees TO analyst_user;\n\nGRANT SELECT, INSERT, UPDATE, DELETE\n  ON orders TO app_user;\n\nGRANT SELECT ON ALL TABLES IN SCHEMA public TO reader;\n\nREVOKE DELETE ON orders FROM app_user;" },
+          { code: "GRANT SELECT ON employees TO analyst_user;\n\nGRANT SELECT, INSERT, UPDATE, DELETE\n  ON orders TO app_user;\n\nGRANT SELECT ON ALL TABLES IN SCHEMA public TO reader;\n\nREVOKE DELETE ON orders FROM app_user;",
+            result: { columns: ['Status'], rows: [['GRANT'], ['GRANT'], ['GRANT'], ['REVOKE']] } },
         ],
       },
       {
@@ -1303,9 +1386,11 @@ const GROUPS: Group[] = [
         descAr: 'يعرض أعمدة الجدول وأنواع البيانات وقابلية القيم الفارغة والمفاتيح.',
         examples: [
           { titleEn: 'MySQL / MariaDB', titleAr: 'MySQL / MariaDB',
-            code: 'DESCRIBE employees;\nDESC employees;' },
+            code: 'DESCRIBE employees;\nDESC employees;',
+            result: { columns: ['Field', 'Type', 'Null', 'Key', 'Default'], rows: [['id', 'int', 'NO', 'PRI', null], ['name', 'varchar(100)', 'NO', '', null], ['salary', 'decimal(10,2)', 'YES', '', '0.00'], ['dept_id', 'int', 'YES', 'MUL', null]] } },
           { titleEn: 'SQLite — PRAGMA', titleAr: 'SQLite — PRAGMA',
-            code: 'PRAGMA table_info(employees);\n-- Returns: cid, name, type, notnull, dflt_value, pk' },
+            code: 'PRAGMA table_info(employees);\n-- Returns: cid, name, type, notnull, dflt_value, pk',
+            result: { columns: ['cid', 'name', 'type', 'notnull', 'dflt_value', 'pk'], rows: [[0, 'id', 'INTEGER', 1, null, 1], [1, 'name', 'VARCHAR(100)', 1, null, 0], [2, 'salary', 'DECIMAL(10,2)', 0, '0', 0], [3, 'dept_id', 'INTEGER', 0, null, 0]] } },
         ],
       },
       {
@@ -1315,11 +1400,14 @@ const GROUPS: Group[] = [
         descEn: 'Lists all tables in the current database. Syntax differs by engine.',
         descAr: 'يُدرج كل الجداول في قاعدة البيانات الحالية. تختلف الصياغة حسب المحرك.',
         examples: [
-          { titleEn: 'MySQL', titleAr: 'MySQL', code: 'SHOW TABLES;' },
+          { titleEn: 'MySQL', titleAr: 'MySQL', code: 'SHOW TABLES;',
+            result: { columns: ['Tables_in_mydb'], rows: [['customers'], ['departments'], ['employees'], ['orders']] } },
           { titleEn: 'PostgreSQL (psql)', titleAr: 'PostgreSQL (psql)',
-            code: '\\dt          -- list tables\n\\dt public.*  -- tables in public schema' },
+            code: '\\dt          -- list tables\n\\dt public.*  -- tables in public schema',
+            result: { columns: ['Schema', 'Name', 'Type', 'Owner'], rows: [['public', 'customers', 'table', 'admin'], ['public', 'employees', 'table', 'admin'], ['public', 'orders', 'table', 'admin']] } },
           { titleEn: 'SQLite', titleAr: 'SQLite',
-            code: ".tables\n\n-- or via SQL:\nSELECT name FROM sqlite_master\nWHERE type = 'table'\nORDER BY name;" },
+            code: ".tables\n\n-- or via SQL:\nSELECT name FROM sqlite_master\nWHERE type = 'table'\nORDER BY name;",
+            result: { columns: ['name'], rows: [['customers'], ['departments'], ['employees'], ['orders']] } },
         ],
       },
       {
@@ -1329,7 +1417,8 @@ const GROUPS: Group[] = [
         descEn: 'Lists all columns of a table with their type, nullability, default, and key info. MySQL / MariaDB specific.',
         descAr: 'يُدرج كل أعمدة جدول مع نوعها وقابلية القيم الفارغة والقيمة الافتراضية. خاص بـ MySQL / MariaDB.',
         examples: [
-          { code: 'SHOW COLUMNS FROM employees;\n\n-- Equivalent\nSHOW FIELDS FROM employees;' },
+          { code: 'SHOW COLUMNS FROM employees;\n\n-- Equivalent\nSHOW FIELDS FROM employees;',
+            result: { columns: ['Field', 'Type', 'Null', 'Key', 'Default', 'Extra'], rows: [['id', 'int', 'NO', 'PRI', null, 'auto_increment'], ['name', 'varchar(100)', 'NO', '', null, ''], ['salary', 'decimal(10,2)', 'YES', '', '0.00', ''], ['dept_id', 'int', 'YES', 'MUL', null, '']] } },
         ],
       },
       {
@@ -1340,9 +1429,11 @@ const GROUPS: Group[] = [
         descAr: 'مجموعة قياسية من المناظير للقراءة فقط تكشف البيانات الوصفية لكل الجداول والأعمدة والقيود.',
         examples: [
           { titleEn: 'List all tables', titleAr: 'عرض كل الجداول',
-            code: "SELECT table_name, table_type\nFROM information_schema.tables\nWHERE table_schema = 'public'\nORDER BY table_name;" },
+            code: "SELECT table_name, table_type\nFROM information_schema.tables\nWHERE table_schema = 'public'\nORDER BY table_name;",
+            result: { columns: ['table_name', 'table_type'], rows: [['customers', 'BASE TABLE'], ['departments', 'BASE TABLE'], ['employees', 'BASE TABLE'], ['orders', 'BASE TABLE'], ['active_employees', 'VIEW']] } },
           { titleEn: 'List all columns of a table', titleAr: 'عرض كل أعمدة جدول',
-            code: "SELECT column_name,\n       data_type,\n       is_nullable,\n       column_default\nFROM information_schema.columns\nWHERE table_name = 'employees'\nORDER BY ordinal_position;" },
+            code: "SELECT column_name,\n       data_type,\n       is_nullable,\n       column_default\nFROM information_schema.columns\nWHERE table_name = 'employees'\nORDER BY ordinal_position;",
+            result: { columns: ['column_name', 'data_type', 'is_nullable', 'column_default'], rows: [['id', 'integer', 'NO', null], ['name', 'character varying', 'NO', null], ['salary', 'numeric', 'YES', '0'], ['dept_id', 'integer', 'YES', null]] } },
         ],
       },
       {
@@ -1353,9 +1444,11 @@ const GROUPS: Group[] = [
         descAr: 'جدول البيانات الوصفية المدمج في SQLite. يخزن جمل CREATE لكل جدول وفهرس ومنظور ومشغّل.',
         examples: [
           { titleEn: 'List all tables', titleAr: 'عرض كل الجداول',
-            code: "SELECT name, sql\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;" },
+            code: "SELECT name, sql\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;",
+            result: { columns: ['name', 'sql'], rows: [['customers', 'CREATE TABLE customers (...)'], ['employees', 'CREATE TABLE employees (...)'], ['orders', 'CREATE TABLE orders (...)']] } },
           { titleEn: 'See CREATE statement for a table', titleAr: 'عرض جملة CREATE لجدول معين',
-            code: "SELECT sql\nFROM sqlite_master\nWHERE type = 'table'\n  AND name = 'employees';" },
+            code: "SELECT sql\nFROM sqlite_master\nWHERE type = 'table'\n  AND name = 'employees';",
+            result: { columns: ['sql'], rows: [['CREATE TABLE employees (id INTEGER PRIMARY KEY, name VARCHAR(100) NOT NULL, salary DECIMAL(10,2) DEFAULT 0, dept_id INTEGER, hire_date DATE)']] } },
         ],
       },
       {
@@ -1366,9 +1459,11 @@ const GROUPS: Group[] = [
         descAr: 'جداول كتالوج نظام PostgreSQL وأوامر psql لفحص بنية قاعدة البيانات.',
         examples: [
           { titleEn: 'psql shortcuts', titleAr: 'اختصارات psql',
-            code: '\\d  employees    -- describe table (columns + indexes)\n\\d+ employees    -- verbose: includes storage & comments\n\\df              -- list functions\n\\di              -- list indexes' },
+            code: '\\d  employees    -- describe table (columns + indexes)\n\\d+ employees    -- verbose: includes storage & comments\n\\df              -- list functions\n\\di              -- list indexes',
+            result: { columns: ['Column', 'Type', 'Nullable', 'Default'], rows: [['id', 'integer', 'not null', null], ['name', 'character varying(100)', 'not null', null], ['salary', 'numeric(10,2)', '', '0'], ['dept_id', 'integer', '', null]] } },
           { titleEn: 'Query system catalog', titleAr: 'استعلام كتالوج النظام',
-            code: "SELECT tablename, tableowner\nFROM pg_tables\nWHERE schemaname = 'public';" },
+            code: "SELECT tablename, tableowner\nFROM pg_tables\nWHERE schemaname = 'public';",
+            result: { columns: ['tablename', 'tableowner'], rows: [['customers', 'admin'], ['departments', 'admin'], ['employees', 'admin'], ['orders', 'admin']] } },
         ],
       },
     ],
