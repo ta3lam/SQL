@@ -301,7 +301,8 @@ const GROUPS: Group[] = [
             code: 'SELECT department, job_title, SUM(salary) AS total\nFROM employees\nGROUP BY ROLLUP(department, job_title);',
             result: { columns: ['department', 'job_title', 'total'], rows: [['HR', 'Analyst', 11400], ['HR', 'Manager', 9500], ['HR', null, 20900], ['IT', 'Engineer', 16300], ['IT', null, 16300], [null, null, 37200]] } },
           { titleEn: 'CUBE — every combination', titleAr: 'CUBE — كل التركيبات',
-            code: 'SELECT region, product, SUM(sales)\nFROM sales_data\nGROUP BY CUBE(region, product);' },
+            code: 'SELECT region, product, SUM(sales)\nFROM sales_data\nGROUP BY CUBE(region, product);',
+            result: { columns: ['region', 'product', 'SUM(sales)'], rows: [['East', 'Widget', 12000], ['East', 'Gadget', 8500], ['East', null, 20500], ['West', 'Widget', 9300], ['West', 'Gadget', 7200], ['West', null, 16500], [null, 'Widget', 21300], [null, 'Gadget', 15700], [null, null, 37000]] } },
         ],
       },
       {
