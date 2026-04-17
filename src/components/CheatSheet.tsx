@@ -2,10 +2,16 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 
+interface Result {
+  columns: string[];
+  rows: (string | number | null)[][];
+}
+
 interface Example {
   titleEn?: string;
   titleAr?: string;
   code: string;
+  result?: Result;
 }
 
 interface Entry {
@@ -40,9 +46,11 @@ const GROUPS: Group[] = [
         descAr: 'يجلب أعمدة من جدول واحد أو أكثر. هو أساس كل استعلام SQL.',
         examples: [
           { titleEn: 'Select specific columns', titleAr: 'تحديد أعمدة بعينها',
-            code: 'SELECT name, salary\nFROM employees;' },
+            code: 'SELECT name, salary\nFROM employees;',
+            result: { columns: ['name', 'salary'], rows: [['Alice', 6000], ['Bob', 4500], ['Carol', 7200]] } },
           { titleEn: 'Select all columns', titleAr: 'تحديد جميع الأعمدة',
-            code: 'SELECT * FROM employees;' },
+            code: 'SELECT * FROM employees;',
+            result: { columns: ['id', 'name', 'department', 'salary'], rows: [[1, 'Alice', 'Sales', 6000], [2, 'Bob', 'IT', 4500], [3, 'Carol', 'HR', 7200]] } },
         ],
       },
       {
@@ -53,9 +61,11 @@ const GROUPS: Group[] = [
         descAr: 'يصفّي الصفوف بناءً على شرط. تُرجع فقط الصفوف التي تحقق الشرط.',
         examples: [
           { titleEn: 'Filter by a value', titleAr: 'التصفية بقيمة',
-            code: "SELECT name, salary\nFROM employees\nWHERE department = 'Sales';" },
+            code: "SELECT name, salary\nFROM employees\nWHERE department = 'Sales';",
+            result: { columns: ['name', 'salary'], rows: [['Alice', 6000], ['David', 5500]] } },
           { titleEn: 'Numeric comparison', titleAr: 'مقارنة رقمية',
-            code: 'SELECT name, salary\nFROM employees\nWHERE salary > 5000;' },
+            code: 'SELECT name, salary\nFROM employees\nWHERE salary > 5000;',
+            result: { columns: ['name', 'salary'], rows: [['Alice', 6000], ['Carol', 7200]] } },
         ],
       },
       {
@@ -66,9 +76,11 @@ const GROUPS: Group[] = [
         descAr: 'يرتّب نتائج الاستعلام حسب عمود أو أكثر، تصاعدياً (ASC) أو تنازلياً (DESC).',
         examples: [
           { titleEn: 'Sort by salary descending', titleAr: 'الترتيب بالراتب تنازلياً',
-            code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC;' },
+            code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC;',
+            result: { columns: ['name', 'salary'], rows: [['Carol', 7200], ['Alice', 6000], ['David', 5500], ['Bob', 4500]] } },
           { titleEn: 'Sort by multiple columns', titleAr: 'الترتيب بأعمدة متعددة',
-            code: 'SELECT name, department, salary\nFROM employees\nORDER BY department ASC, salary DESC;' },
+            code: 'SELECT name, department, salary\nFROM employees\nORDER BY department ASC, salary DESC;',
+            result: { columns: ['name', 'department', 'salary'], rows: [['Carol', 'HR', 7200], ['Bob', 'IT', 4500], ['Alice', 'Sales', 6000], ['David', 'Sales', 5500]] } },
         ],
       },
       {
@@ -79,7 +91,8 @@ const GROUPS: Group[] = [
         descAr: 'LIMIT يحدد عدد الصفوف المُرجعة. OFFSET يتخطى أول N صفوف (مفيد للتصفح بالصفحات).',
         examples: [
           { titleEn: 'Top 5 highest salaries', titleAr: 'أعلى 5 رواتب',
-            code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 5;' },
+            code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 5;',
+            result: { columns: ['name', 'salary'], rows: [['Carol', 7200], ['Alice', 6000], ['David', 5500], ['Bob', 4500], ['Eve', 3800]] } },
           { titleEn: 'Page 2 (rows 11–20)', titleAr: 'الصفحة الثانية (الصفوف 11–20)',
             code: 'SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 10 OFFSET 10;' },
         ],
@@ -91,7 +104,8 @@ const GROUPS: Group[] = [
         descEn: 'Removes duplicate rows from the result set, returning only unique values.',
         descAr: 'يزيل الصفوف المكررة من النتائج، ويُرجع فقط القيم الفريدة.',
         examples: [
-          { code: 'SELECT DISTINCT department\nFROM employees;' },
+          { code: 'SELECT DISTINCT department\nFROM employees;',
+            result: { columns: ['department'], rows: [['HR'], ['IT'], ['Marketing'], ['Sales']] } },
         ],
       },
       {
@@ -102,7 +116,8 @@ const GROUPS: Group[] = [
         descAr: 'يمنح عموداً أو جدولاً اسماً مؤقتاً لجعل النتائج أكثر وضوحاً.',
         examples: [
           { titleEn: 'Column alias', titleAr: 'اسم مستعار للعمود',
-            code: 'SELECT name,\n       salary * 12 AS annual_salary\nFROM employees;' },
+            code: 'SELECT name,\n       salary * 12 AS annual_salary\nFROM employees;',
+            result: { columns: ['name', 'annual_salary'], rows: [['Alice', 72000], ['Bob', 54000], ['Carol', 86400]] } },
           { titleEn: 'Table alias', titleAr: 'اسم مستعار للجدول',
             code: 'SELECT e.name, d.name AS dept_name\nFROM employees e\nJOIN departments d ON e.dept_id = d.id;' },
         ],
@@ -150,7 +165,8 @@ const GROUPS: Group[] = [
         descEn: 'Filters rows where a value falls within an inclusive range (both endpoints are included).',
         descAr: 'يصفّي الصفوف التي تقع قيمتها ضمن نطاق شامل للطرفين.',
         examples: [
-          { code: 'SELECT name, salary\nFROM employees\nWHERE salary BETWEEN 3000 AND 7000;' },
+          { code: 'SELECT name, salary\nFROM employees\nWHERE salary BETWEEN 3000 AND 7000;',
+            result: { columns: ['name', 'salary'], rows: [['Bob', 4500], ['Eve', 3800], ['Alice', 6000], ['David', 5500]] } },
         ],
       },
       {
@@ -203,7 +219,8 @@ const GROUPS: Group[] = [
         descEn: 'Counts rows. COUNT(*) counts all rows; COUNT(col) skips NULL values.',
         descAr: 'يعدّ الصفوف. COUNT(*) يعدّ كل الصفوف؛ COUNT(col) يتجاهل قيم NULL.',
         examples: [
-          { code: 'SELECT COUNT(*) AS total_employees\nFROM employees;\n\nSELECT COUNT(DISTINCT department) AS dept_count\nFROM employees;' },
+          { code: 'SELECT COUNT(*) AS total_employees\nFROM employees;\n\nSELECT COUNT(DISTINCT department) AS dept_count\nFROM employees;',
+            result: { columns: ['total_employees', 'dept_count'], rows: [[12, 4]] } },
         ],
       },
       {
@@ -213,7 +230,8 @@ const GROUPS: Group[] = [
         descEn: 'SUM adds up all values in a column. AVG computes the arithmetic mean. Both ignore NULL values.',
         descAr: 'SUM يجمع كل القيم في عمود. AVG يحسب المتوسط الحسابي. كلاهما يتجاهل قيم NULL.',
         examples: [
-          { code: 'SELECT SUM(salary) AS total_payroll,\n       AVG(salary) AS avg_salary\nFROM employees;' },
+          { code: 'SELECT SUM(salary) AS total_payroll,\n       AVG(salary) AS avg_salary\nFROM employees;',
+            result: { columns: ['total_payroll', 'avg_salary'], rows: [[63500, 5291.67]] } },
         ],
       },
       {
@@ -223,7 +241,8 @@ const GROUPS: Group[] = [
         descEn: 'MIN returns the smallest value; MAX returns the largest. Works on numbers, dates, and strings.',
         descAr: 'MIN يُرجع أصغر قيمة؛ MAX يُرجع أكبر قيمة. يعمل على الأرقام والتواريخ والنصوص.',
         examples: [
-          { code: 'SELECT MIN(salary) AS lowest,\n       MAX(salary) AS highest\nFROM employees;' },
+          { code: 'SELECT MIN(salary) AS lowest,\n       MAX(salary) AS highest\nFROM employees;',
+            result: { columns: ['lowest', 'highest'], rows: [[3200, 9500]] } },
         ],
       },
       {
@@ -234,7 +253,8 @@ const GROUPS: Group[] = [
         descAr: 'يجمّع الصفوف التي لها نفس القيمة في عمود، ليُطبَّق التجميع على كل مجموعة.',
         examples: [
           { titleEn: 'Count and average per department', titleAr: 'العدد والمتوسط لكل قسم',
-            code: 'SELECT department,\n       COUNT(*)    AS headcount,\n       AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department;' },
+            code: 'SELECT department,\n       COUNT(*)    AS headcount,\n       AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department;',
+            result: { columns: ['department', 'headcount', 'avg_salary'], rows: [['HR', 3, 6200], ['IT', 4, 5800], ['Marketing', 2, 4500], ['Sales', 3, 5766.67]] } },
         ],
       },
       {
@@ -245,7 +265,8 @@ const GROUPS: Group[] = [
         descAr: 'يصفّي المجموعات بعد GROUP BY — مثل WHERE لكن على نتائج التجميع.',
         examples: [
           { titleEn: 'Departments with average salary above 5000', titleAr: 'الأقسام بمتوسط راتب فوق 5000',
-            code: 'SELECT department, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department\nHAVING AVG(salary) > 5000;' },
+            code: 'SELECT department, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department\nHAVING AVG(salary) > 5000;',
+            result: { columns: ['department', 'avg_salary'], rows: [['HR', 6200], ['IT', 5800], ['Sales', 5766.67]] } },
         ],
       },
       {
@@ -256,7 +277,8 @@ const GROUPS: Group[] = [
         descAr: 'يدمج قيم صفوف متعددة في نص واحد مع فاصل. يُسمى GROUP_CONCAT في MySQL/SQLite.',
         examples: [
           { titleEn: 'List employee names per department', titleAr: 'قائمة الموظفين لكل قسم',
-            code: '-- PostgreSQL\nSELECT department,\n       STRING_AGG(name, \', \' ORDER BY name) AS members\nFROM employees\nGROUP BY department;\n\n-- MySQL / SQLite\nSELECT department,\n       GROUP_CONCAT(name ORDER BY name) AS members\nFROM employees\nGROUP BY department;' },
+            code: '-- PostgreSQL\nSELECT department,\n       STRING_AGG(name, \', \' ORDER BY name) AS members\nFROM employees\nGROUP BY department;\n\n-- MySQL / SQLite\nSELECT department,\n       GROUP_CONCAT(name ORDER BY name) AS members\nFROM employees\nGROUP BY department;',
+            result: { columns: ['department', 'members'], rows: [['HR', 'Carol, Eve, Frank'], ['IT', 'Bob, Dave'], ['Sales', 'Alice, David, George']] } },
         ],
       },
       {
@@ -300,7 +322,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns only rows that have a matching value in both tables.',
         descAr: 'يُرجع فقط الصفوف التي لها قيمة مطابقة في كلا الجدولين.',
         examples: [
-          { code: 'SELECT e.name, d.name AS department\nFROM employees e\nINNER JOIN departments d\n  ON e.dept_id = d.id;' },
+          { code: 'SELECT e.name, d.name AS department\nFROM employees e\nINNER JOIN departments d\n  ON e.dept_id = d.id;',
+            result: { columns: ['name', 'department'], rows: [['Alice', 'Sales'], ['Bob', 'IT'], ['Carol', 'HR'], ['David', 'Sales']] } },
         ],
       },
       {
@@ -311,7 +334,8 @@ const GROUPS: Group[] = [
         descAr: 'يُرجع كل صفوف الجدول الأيسر، مع المطابق من الأيمن. الصفوف غير المتطابقة تظهر كـ NULL.',
         examples: [
           { titleEn: 'Customers with or without orders', titleAr: 'العملاء بطلبات أو بدونها',
-            code: 'SELECT c.name, o.id AS order_id\nFROM customers c\nLEFT JOIN orders o\n  ON c.id = o.customer_id;' },
+            code: 'SELECT c.name, o.id AS order_id\nFROM customers c\nLEFT JOIN orders o\n  ON c.id = o.customer_id;',
+            result: { columns: ['name', 'order_id'], rows: [['Alice', 1001], ['Alice', 1005], ['Bob', 1008], ['Carol', null]] } },
         ],
       },
       {
@@ -341,7 +365,8 @@ const GROUPS: Group[] = [
         descEn: 'Produces the Cartesian product — every row in the left table paired with every row in the right.',
         descAr: 'ينتج الضرب الديكارتي — كل صف في الجدول الأيسر مقترن بكل صف في الأيمن.',
         examples: [
-          { code: 'SELECT a.color, b.size\nFROM colors a\nCROSS JOIN sizes b;' },
+          { code: 'SELECT a.color, b.size\nFROM colors a\nCROSS JOIN sizes b;',
+            result: { columns: ['color', 'size'], rows: [['Red', 'S'], ['Red', 'M'], ['Red', 'L'], ['Blue', 'S'], ['Blue', 'M'], ['Blue', 'L']] } },
         ],
       },
       {
@@ -351,7 +376,8 @@ const GROUPS: Group[] = [
         descEn: 'Joins a table to itself using aliases. Useful for hierarchical data like employee–manager relationships.',
         descAr: 'يصل الجدول بنفسه باستخدام أسماء مستعارة. مفيد للبيانات الهرمية مثل علاقة الموظف–المدير.',
         examples: [
-          { code: 'SELECT e.name  AS employee,\n       m.name  AS manager\nFROM employees e\nJOIN employees m\n  ON e.manager_id = m.id;' },
+          { code: 'SELECT e.name  AS employee,\n       m.name  AS manager\nFROM employees e\nJOIN employees m\n  ON e.manager_id = m.id;',
+            result: { columns: ['employee', 'manager'], rows: [['Alice', 'Carol'], ['Bob', 'Carol'], ['David', 'Alice'], ['Eve', 'Carol']] } },
         ],
       },
       {
@@ -393,7 +419,8 @@ const GROUPS: Group[] = [
         descAr: 'استعلام فرعي يُرجع قيمة واحدة فقط. يُستخدم في WHERE أو SELECT.',
         examples: [
           { titleEn: 'Employees earning above average', titleAr: 'الموظفون فوق المتوسط',
-            code: 'SELECT name, salary\nFROM employees\nWHERE salary > (\n  SELECT AVG(salary) FROM employees\n);' },
+            code: 'SELECT name, salary\nFROM employees\nWHERE salary > (\n  SELECT AVG(salary) FROM employees\n);',
+            result: { columns: ['name', 'salary'], rows: [['Alice', 6000], ['Carol', 7200], ['Frank', 9500]] } },
         ],
       },
       {
@@ -487,7 +514,8 @@ const GROUPS: Group[] = [
         descAr: 'تعبير if-then-else في SQL. يُقيّم الشروط من الأعلى للأسفل ويُرجع أول نتيجة مطابقة.',
         examples: [
           { titleEn: 'Classify salary level', titleAr: 'تصنيف مستوى الراتب',
-            code: "SELECT name, salary,\n  CASE\n    WHEN salary >= 8000 THEN 'Senior'\n    WHEN salary >= 5000 THEN 'Mid'\n    ELSE 'Junior'\n  END AS grade\nFROM employees;" },
+            code: "SELECT name, salary,\n  CASE\n    WHEN salary >= 8000 THEN 'Senior'\n    WHEN salary >= 5000 THEN 'Mid'\n    ELSE 'Junior'\n  END AS grade\nFROM employees;",
+            result: { columns: ['name', 'salary', 'grade'], rows: [['Alice', 6000, 'Mid'], ['Bob', 4500, 'Junior'], ['Carol', 7200, 'Mid'], ['Frank', 9500, 'Senior']] } },
         ],
       },
       {
@@ -507,7 +535,8 @@ const GROUPS: Group[] = [
         descEn: 'Returns the first non-NULL value from a list of arguments. Useful for providing fallback values.',
         descAr: 'يُرجع أول قيمة غير NULL من قائمة الوسيطات. مفيد لتوفير قيم افتراضية.',
         examples: [
-          { code: "SELECT name,\n       COALESCE(phone, mobile, 'N/A') AS contact\nFROM employees;" },
+          { code: "SELECT name,\n       COALESCE(phone, mobile, 'N/A') AS contact\nFROM employees;",
+            result: { columns: ['name', 'contact'], rows: [['Alice', '555-1001'], ['Bob', '555-2002'], ['Carol', 'N/A'], ['David', '555-4004']] } },
         ],
       },
       {
@@ -548,7 +577,8 @@ const GROUPS: Group[] = [
         descAr: 'تعبير جدولي مشترك يعرّف مجموعة نتائج مؤقتة مسمّاة في أعلى الاستعلام، مما يجعل الاستعلامات المعقدة أسهل قراءةً.',
         examples: [
           { titleEn: 'Single CTE', titleAr: 'CTE واحد',
-            code: 'WITH high_earners AS (\n  SELECT * FROM employees\n  WHERE salary > 8000\n)\nSELECT name, department\nFROM high_earners\nORDER BY salary DESC;' },
+            code: 'WITH high_earners AS (\n  SELECT * FROM employees\n  WHERE salary > 8000\n)\nSELECT name, department\nFROM high_earners\nORDER BY salary DESC;',
+            result: { columns: ['name', 'department'], rows: [['Frank', 'HR'], ['Grace', 'IT']] } },
           { titleEn: 'Multiple CTEs', titleAr: 'CTEs متعددة',
             code: 'WITH\n  dept_avg AS (\n    SELECT department, AVG(salary) AS avg\n    FROM employees\n    GROUP BY department\n  ),\n  top_depts AS (\n    SELECT department FROM dept_avg\n    WHERE avg > 6000\n  )\nSELECT * FROM top_depts;' },
         ],
@@ -584,7 +614,8 @@ const GROUPS: Group[] = [
           { titleEn: 'Syntax template', titleAr: 'قالب الصياغة',
             code: 'function() OVER (\n  PARTITION BY col   -- reset per group\n  ORDER BY col       -- order within window\n  ROWS BETWEEN UNBOUNDED PRECEDING\n            AND CURRENT ROW\n)' },
           { titleEn: 'Salary rank within each department', titleAr: 'ترتيب الراتب داخل كل قسم',
-            code: 'SELECT name, department, salary,\n       RANK() OVER (\n         PARTITION BY department\n         ORDER BY salary DESC\n       ) AS dept_rank\nFROM employees;' },
+            code: 'SELECT name, department, salary,\n       RANK() OVER (\n         PARTITION BY department\n         ORDER BY salary DESC\n       ) AS dept_rank\nFROM employees;',
+            result: { columns: ['name', 'department', 'salary', 'dept_rank'], rows: [['Carol', 'HR', 7200, 1], ['Eve', 'HR', 5800, 2], ['Frank', 'HR', 4200, 3], ['Alice', 'Sales', 6000, 1], ['David', 'Sales', 5500, 2]] } },
         ],
       },
       {
@@ -594,7 +625,8 @@ const GROUPS: Group[] = [
         descEn: 'Assigns a unique sequential integer to each row within a partition. No ties — every row gets a distinct number.',
         descAr: 'يعيّن رقماً تسلسلياً فريداً لكل صف ضمن القسم. لا توجد روابط — كل صف يحصل على رقم مميز.',
         examples: [
-          { code: 'SELECT name, department, salary,\n       ROW_NUMBER() OVER (\n         PARTITION BY department\n         ORDER BY salary DESC\n       ) AS row_num\nFROM employees;' },
+          { code: 'SELECT name, department, salary,\n       ROW_NUMBER() OVER (\n         PARTITION BY department\n         ORDER BY salary DESC\n       ) AS row_num\nFROM employees;',
+            result: { columns: ['name', 'department', 'salary', 'row_num'], rows: [['Carol', 'HR', 7200, 1], ['Eve', 'HR', 5800, 2], ['Alice', 'Sales', 6000, 1], ['David', 'Sales', 5500, 2], ['Bob', 'IT', 8100, 1]] } },
         ],
       },
       {
@@ -604,7 +636,8 @@ const GROUPS: Group[] = [
         descEn: 'RANK leaves gaps after ties (1,1,3). DENSE_RANK does not leave gaps (1,1,2). Both rank rows within a partition.',
         descAr: 'RANK يترك فجوات بعد الروابط (1,1,3). DENSE_RANK لا يترك فجوات (1,1,2).',
         examples: [
-          { code: 'SELECT name, salary,\n       RANK()       OVER (ORDER BY salary DESC) AS rnk,\n       DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rnk\nFROM employees;' },
+          { code: 'SELECT name, salary,\n       RANK()       OVER (ORDER BY salary DESC) AS rnk,\n       DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rnk\nFROM employees;',
+            result: { columns: ['name', 'salary', 'rnk', 'dense_rnk'], rows: [['Frank', 9500, 1, 1], ['Carol', 7200, 2, 2], ['Alice', 6000, 3, 3], ['Alice2', 6000, 3, 3], ['David', 5500, 5, 4]] } },
         ],
       },
       {
@@ -615,7 +648,8 @@ const GROUPS: Group[] = [
         descAr: 'يقسّم الصفوف إلى N مجموعات متساوية تقريباً ويعيّن رقم المجموعة لكل صف.',
         examples: [
           { titleEn: 'Salary quartiles', titleAr: 'أرباع الراتب',
-            code: 'SELECT name, salary,\n       NTILE(4) OVER (ORDER BY salary) AS quartile\nFROM employees;' },
+            code: 'SELECT name, salary,\n       NTILE(4) OVER (ORDER BY salary) AS quartile\nFROM employees;',
+            result: { columns: ['name', 'salary', 'quartile'], rows: [['Eve', 3200, 1], ['Bob2', 4500, 1], ['Bob', 4500, 2], ['David', 5500, 2], ['Alice', 6000, 3], ['Carol', 7200, 3], ['Frank', 9500, 4]] } },
         ],
       },
       {
@@ -636,7 +670,8 @@ const GROUPS: Group[] = [
         descAr: 'LAG يصل إلى قيمة من الصف السابق؛ LEAD يصل إلى قيمة من الصف التالي — دون الحاجة إلى Self JOIN.',
         examples: [
           { titleEn: 'Compare each sale to the previous one', titleAr: 'مقارنة كل مبيعة بالسابقة',
-            code: 'SELECT order_date, revenue,\n       LAG(revenue,  1) OVER (ORDER BY order_date) AS prev_revenue,\n       LEAD(revenue, 1) OVER (ORDER BY order_date) AS next_revenue\nFROM daily_sales;' },
+            code: 'SELECT order_date, revenue,\n       LAG(revenue,  1) OVER (ORDER BY order_date) AS prev_revenue,\n       LEAD(revenue, 1) OVER (ORDER BY order_date) AS next_revenue\nFROM daily_sales;',
+            result: { columns: ['order_date', 'revenue', 'prev_revenue', 'next_revenue'], rows: [['2024-01-01', 1200, null, 980], ['2024-01-02', 980, 1200, 1450], ['2024-01-03', 1450, 980, 870], ['2024-01-04', 870, 1450, null]] } },
         ],
       },
       {
@@ -656,7 +691,8 @@ const GROUPS: Group[] = [
         descEn: 'Use SUM() or AVG() OVER with ORDER BY to compute a running (cumulative) total or a moving average over a row window.',
         descAr: 'استخدم SUM() أو AVG() مع OVER و ORDER BY لحساب مجموع تراكمي أو متوسط متحرك.',
         examples: [
-          { code: 'SELECT order_date, revenue,\n       SUM(revenue) OVER (ORDER BY order_date)\n         AS running_total,\n       AVG(revenue) OVER (\n         ORDER BY order_date\n         ROWS BETWEEN 6 PRECEDING AND CURRENT ROW\n       ) AS moving_avg_7d\nFROM daily_sales;' },
+          { code: 'SELECT order_date, revenue,\n       SUM(revenue) OVER (ORDER BY order_date)\n         AS running_total,\n       AVG(revenue) OVER (\n         ORDER BY order_date\n         ROWS BETWEEN 6 PRECEDING AND CURRENT ROW\n       ) AS moving_avg_7d\nFROM daily_sales;',
+            result: { columns: ['order_date', 'revenue', 'running_total', 'moving_avg_7d'], rows: [['2024-01-01', 1200, 1200, 1200], ['2024-01-02', 980, 2180, 1090], ['2024-01-03', 1450, 3630, 1210], ['2024-01-04', 870, 4500, 1125]] } },
         ],
       },
     ],
@@ -1516,6 +1552,42 @@ export function CheatSheet({ onClose }: CheatSheetProps) {
                     <pre className="text-sm font-mono text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 rounded-xl px-5 py-4 overflow-x-auto whitespace-pre leading-relaxed border border-indigo-100 dark:border-indigo-900/60 text-left" dir="ltr">
                       {ex.code}
                     </pre>
+                    {ex.result && (
+                      <div className="mt-2 overflow-hidden rounded-xl border border-emerald-200 dark:border-emerald-900/40">
+                        <div className="bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-200 dark:border-emerald-900/40 flex items-center gap-1.5">
+                          <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18M3 14h18M3 18h18" />
+                          </svg>
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                            {lang === 'ar' ? 'النتيجة' : 'Result'}
+                          </span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs" dir="ltr">
+                            <thead>
+                              <tr className="bg-emerald-50/60 dark:bg-emerald-950/20 border-b border-emerald-100 dark:border-emerald-900/30">
+                                {ex.result.columns.map(col => (
+                                  <th key={col} className="px-3 py-1.5 text-left font-semibold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                                    {col}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {ex.result.rows.map((row, ri) => (
+                                <tr key={ri} className="border-b border-emerald-50 dark:border-emerald-900/20 last:border-0 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 transition-colors">
+                                  {row.map((cell, ci) => (
+                                    <td key={ci} className="px-3 py-1.5 text-gray-700 dark:text-gray-300 font-mono whitespace-nowrap">
+                                      {cell === null ? <span className="text-gray-400 dark:text-gray-500 italic">NULL</span> : String(cell)}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
